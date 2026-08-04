@@ -6,16 +6,11 @@
     <title>PKK Gerontik + SDKI + SLKI + SIKI</title>
     <style>
         /* ── RESET & ROOT ── */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #0b4b8a;
             --primary-light: #2a7bcb;
             --primary-dark: #08315e;
-            --primary-glow: rgba(11, 75, 138, 0.25);
             --accent: #5b9bd5;
             --glass: rgba(255, 255, 255, 0.82);
             --glass-border: rgba(255, 255, 255, 0.5);
@@ -256,6 +251,9 @@
             margin-left:auto;
             white-space:nowrap;
             border:1px solid rgba(255,255,255,0.3);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
         }
 
         /* ── BOTTOM NAV ── */
@@ -457,6 +455,7 @@
         .score-interpretation.moderate { background:#fde2c4; color:#9a5a1a; }
         .score-interpretation.severe { background:#fdd5d5; color:#a12a2a; }
         .score-interpretation.independent { background:#d4f0e0; color:#0f6a3a; }
+        .score-placeholder { color: var(--text-muted); font-size: 1rem; font-weight: 500; }
 
         /* ── INSTRUMENT ITEMS ── */
         .instrument-item {
@@ -495,13 +494,14 @@
         }
 
         /* ── DYNAMIC TABLE ── */
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 10px 0; }
         .dynamic-table {
             width:100%;
             border-collapse:collapse;
-            margin:10px 0;
             font-size:0.82rem;
             border-radius:var(--radius-sm);
             overflow:hidden;
+            min-width: 600px;
         }
         .dynamic-table th, .dynamic-table td {
             border:1px solid #dce8f2;
@@ -625,7 +625,7 @@
         .w-full { width:100%; }
 
         /* ── MODAL SIKI ── */
-        #sikiModal {
+        .modal-overlay {
             display:none;
             position:fixed;
             inset:0;
@@ -636,7 +636,8 @@
             justify-content:center;
             padding:20px;
         }
-        #sikiModal .modal-content {
+        .modal-overlay.active { display: flex; }
+        .modal-content {
             background:#fff;
             max-width:600px;
             width:100%;
@@ -646,21 +647,21 @@
             max-height:90vh;
             overflow-y:auto;
         }
-        #sikiModal .modal-header {
+        .modal-header {
             display:flex;
             justify-content:space-between;
             align-items:center;
             margin-bottom:16px;
         }
-        #sikiModal .modal-header h3 { color:var(--primary-dark); margin:0; }
-        #sikiModal .modal-close {
+        .modal-header h3 { color:var(--primary-dark); margin:0; }
+        .modal-close {
             background:transparent;
             border:none;
             font-size:28px;
             cursor:pointer;
             color:#888;
         }
-        #sikiResultsList {
+        .modal-results-list {
             max-height:400px;
             overflow-y:auto;
             border:1px solid var(--border);
@@ -678,49 +679,12 @@
         .sdki-result-item:hover { background:#eaf3fc; }
         .sdki-result-item .kode { font-weight:700; color:var(--primary); }
 
-        /* ── MODAL SLKI ── */
-        #slkiModal {
-            display:none;
-            position:fixed;
-            inset:0;
-            z-index:9999;
-            background:rgba(0,0,0,0.5);
-            backdrop-filter:blur(4px);
-            align-items:center;
-            justify-content:center;
-            padding:20px;
-        }
-        #slkiModal .modal-content {
-            background:#fff;
-            max-width:600px;
-            width:100%;
-            border-radius:24px;
-            padding:24px;
-            box-shadow:0 24px 60px rgba(0,0,0,0.3);
-            max-height:90vh;
-            overflow-y:auto;
-        }
-        #slkiModal .modal-header {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:16px;
-        }
-        #slkiModal .modal-header h3 { color:var(--primary-dark); margin:0; }
-        #slkiModal .modal-close {
-            background:transparent;
-            border:none;
-            font-size:28px;
-            cursor:pointer;
-            color:#888;
-        }
-        #slkiResultsList {
-            max-height:400px;
-            overflow-y:auto;
-            border:1px solid var(--border);
-            border-radius:var(--radius-sm);
-            background:#fafcff;
-            padding:4px 0;
+        /* ── INSTRUMENT SUB TABS ── */
+        #instSubTabs .btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(11,75,138,0.2);
         }
 
         /* ── RESPONSIVE ── */
@@ -728,7 +692,7 @@
             .cover-card { padding:36px 24px; }
             .cover-title { font-size:1.4rem; }
             .app-header { flex-wrap:wrap; padding:12px 16px; }
-            .header-badge { margin-left:0; font-size:0.6rem; padding:2px 12px; }
+            .header-badge { margin-left:0; font-size:0.6rem; padding:2px 12px; max-width: 120px; }
             .nav-tab { font-size:0.6rem; padding:6px 2px; }
             .nav-tab .tab-icon { font-size:1.2rem; }
             .nav-tab .tab-label { font-size:0.5rem; }
@@ -746,18 +710,18 @@
         /* ── PRINT ── */
         @page { size:portrait; margin:1.5cm 1.2cm 1.2cm 1.2cm; }
         @media print {
-            .bg-container, .particles, .nav-tabs, .app-header, .cover-screen, .loading-overlay, .toast-container, .btn, .week-selector, #instSubTabs, .no-print, #sikiModal, #slkiModal { display:none !important; }
-            .page { display:block !important; opacity:1 !important; animation:none !important; page-break-after:always; padding:0 !important; margin:0 !important; }
+            .bg-container, .particles, .nav-tabs, .app-header, .cover-screen, .loading-overlay, .toast-container, .btn, .week-selector, #instSubTabs, .no-print, .modal-overlay { display:none !important; }
+            .page { display:none !important; opacity:1 !important; animation:none !important; page-break-after:always; padding:0 !important; margin:0 !important; }
+            .page.print-visible { display:block !important; }
             .page:last-child { page-break-after:avoid; }
             .app-container { display:block !important; padding:0 !important; max-width:100% !important; background:#fff !important; color:#000 !important; margin:0 auto !important; }
-            .card { box-shadow:none !important; border:1px solid #ddd !important; border-radius:4px !important; background:#fff !important; padding:16px 18px !important; margin-bottom:0 !important; page-break-inside:avoid; transform:none !important; }
+            .card { box-shadow:none !important; border:1px solid #ddd !important; border-radius:4px !important; background:#fff !important; padding:16px 18px !important; margin-bottom:12px !important; page-break-inside:avoid; transform:none !important; }
             .card-header { border-bottom:2px solid #0b4b8a !important; margin-bottom:12px !important; }
             .card-title { color:#0b4b8a !important; }
             .card-icon { background:#e6f0fa !important; }
             .print-header { display:block !important; text-align:center !important; font-size:16pt !important; font-weight:700 !important; color:#0b4b8a !important; border-bottom:2px solid #0b4b8a !important; padding-bottom:8px !important; margin-bottom:16px !important; letter-spacing:1px !important; text-transform:uppercase !important; }
-            .print-header { display:none; }
-            @media print { .print-header { display:block !important; } }
             .form-input, .form-select, .form-textarea { border:1px solid #aaa !important; background:#fff !important; color:#000 !important; padding:6px 10px !important; font-size:0.85rem !important; }
+            .form-select { appearance: none; -webkit-appearance: none; }
             .dynamic-table { font-size:0.75rem !important; }
             .dynamic-table th { background:#eaf3fc !important; color:#0b4b8a !important; }
             .dynamic-table td { border:1px solid #aaa !important; }
@@ -808,7 +772,7 @@
         <div class="cover-card">
             <div class="cover-logo">🏥</div>
             <h2 class="cover-title">Panduan Praktik Klinik<br /><span>Keperawatan Gerontik</span></h2>
-            <p class="cover-subtitle">Aplikasi digital untuk mahasiswa Keperawatan<br />dengan integrasi SDKI, SLKI, dan SIKI</p>
+            <p class="cover-subtitle">Aplikasi digital untuk mahasiswa profesi ners<br />dengan integrasi SDKI, SLKI, dan SIKI</p>
             <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; font-weight:500;">Design by Ns. Amzal Mortin Andas, M.Kep, Ph.D</p>
             <button class="cover-btn" onclick="mulaiAplikasi()">✨ Mulai Aplikasi</button>
             <div class="cover-footer">— ⚕️ evidence-based, holistic —</div>
@@ -825,11 +789,11 @@
     <div class="app-container" id="appContainer">
 
         <!-- HEADER -->
-        <div class="app-header">
+        <div class="app-header no-print">
             <div class="header-logo">🏥</div>
             <div class="header-info">
                 <h1>Praktik Klinik Keperawatan Gerontik</h1>
-                <span class="subtitle">Panduan Digital Mahasiswa Keperawatan</span>
+                <span class="subtitle">Panduan Digital Mahasiswa Profesi Ners</span>
             </div>
             <div class="header-badge">Ns. Amzal Mortin Andas, M.Kep, Ph.D</div>
         </div>
@@ -838,7 +802,7 @@
         <!-- Beranda -->
         <div class="page active" id="page-welcome">
             <div class="card text-center">
-                <div class="print-header" style="display:none;">ASUHAN KEPERAWATAN GERONTIK</div>
+                <div class="print-header">ASUHAN KEPERAWATAN GERONTIK</div>
                 <div style="font-size:3.4rem; margin-bottom:6px;">👩‍⚕️</div>
                 <h2 style="color:var(--primary-dark);">Selamat Datang</h2>
                 <p style="color:var(--text-muted); max-width:420px; margin:0 auto 18px;">Lengkapi data diri Anda sebelum memulai pengkajian lansia.</p>
@@ -847,7 +811,7 @@
                     <div class="form-group"><label class="form-label">NIM <span class="required">*</span></label><input class="form-input" id="mhsNIM" placeholder="NIM" /></div>
                 </div>
                 <div class="form-group" style="text-align:left;"><label class="form-label">Status <span class="required">*</span></label>
-                    <select class="form-select" id="mhsStatus"><option value="">-- Pilih --</option><option>Reguler</option><option>RPL</option></select>
+                    <select class="form-select" id="mhsStatus"><option value="">-- Pilih --</option><option>Reguler</option><option>RPL</option><option>D3 Keperawatan</option></select>
                 </div>
                 <button class="btn btn-primary btn-block" onclick="simpanMahasiswa()">🚀 Simpan &amp; Mulai</button>
             </div>
@@ -855,9 +819,9 @@
 
         <!-- Demografi -->
         <div class="page" id="page-demografi">
-            <div class="week-selector" id="demoWeekSel"></div>
+            <div class="week-selector no-print" id="demoWeekSel"></div>
             <div class="card">
-                <div class="print-header" style="display:none;">ASUHAN KEPERAWATAN GERONTIK</div>
+                <div class="print-header">ASUHAN KEPERAWATAN GERONTIK</div>
                 <div class="card-header"><div class="card-icon blue">📋</div><div class="card-title">Pengkajian Demografi Lansia</div></div>
                 <div class="grid-2">
                     <div class="form-group"><label>Nama Lansia <span class="required">*</span></label><input class="form-input demografi-input" data-field="namaLansia" placeholder="Nama lengkap" /></div>
@@ -885,35 +849,37 @@
                 </div>
                 <div class="form-group"><label>Riwayat Penyakit <span class="required">*</span></label><textarea class="form-textarea demografi-input" data-field="riwayatPenyakit" rows="2" placeholder="Riwayat medis lansia..."></textarea></div>
                 <div class="form-group"><label>Obat-obatan</label><textarea class="form-textarea demografi-input" data-field="obatObatan" rows="1" placeholder="Obat yang dikonsumsi..."></textarea></div>
-                <button class="btn btn-primary btn-block" onclick="simpanDemografi()">💾 Simpan Demografi</button>
+                <button class="btn btn-primary btn-block no-print" onclick="simpanDemografi()">➡️ Lanjut</button>
             </div>
         </div>
 
         <!-- Instrumen -->
         <div class="page" id="page-instrumen">
-            <div class="week-selector" id="instWeekSel"></div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;" id="instSubTabs"></div>
+            <div class="week-selector no-print" id="instWeekSel"></div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;" id="instSubTabs" class="no-print"></div>
             <div id="instrumenContainer"></div>
-            <button class="btn btn-success btn-block" onclick="simpanInstrumen()">💾 Simpan Semua Instrumen</button>
+            <button class="btn btn-success btn-block no-print" onclick="simpanInstrumen()">➡️ Lanjut</button>
         </div>
 
         <!-- Asuhan Keperawatan -->
         <div class="page" id="page-asuhan">
-            <div class="week-selector" id="asuhanWeekSel"></div>
+            <div class="week-selector no-print" id="asuhanWeekSel"></div>
             <div class="card">
-                <div class="print-header" style="display:none;">ASUHAN KEPERAWATAN GERONTIK</div>
+                <div class="print-header">ASUHAN KEPERAWATAN GERONTIK</div>
                 <div class="card-header"><div class="card-icon green">📝</div><div class="card-title">Asuhan Keperawatan Gerontik</div></div>
 
                 <h4 style="color:var(--primary-dark); margin-bottom:8px;">1. Pemeriksaan Fisik <span style="font-weight:400;color:var(--text-muted);">(Head to Toe)</span></h4>
                 <textarea class="form-textarea" id="asuhanFisik" rows="5" placeholder="Uraikan hasil pemeriksaan fisik secara sistematis..."></textarea>
 
                 <h4 style="color:var(--primary-dark); margin-top:20px; margin-bottom:8px;">2. Analisa Data</h4>
-                <table class="dynamic-table" id="analisaTable"><thead><tr><th>No</th><th>Data (DS/DO)</th><th>Masalah Keperawatan</th><th>Etiologi</th><th></th></tr></thead><tbody></tbody></table>
-                <button class="btn btn-sm btn-outline" onclick="tambahBaris('analisa')">+ Tambah</button>
+                <div class="table-wrapper">
+                    <table class="dynamic-table" id="analisaTable"><thead><tr><th>No</th><th>Data (DS/DO)</th><th>Masalah Keperawatan</th><th>Etiologi</th><th></th></tr></thead><tbody></tbody></table>
+                </div>
+                <button class="btn btn-sm btn-outline no-print" onclick="tambahBaris('analisa')">+ Tambah</button>
 
                 <h4 style="color:var(--primary-dark); margin-top:20px; margin-bottom:8px;">3. Diagnosis Keperawatan <span style="font-weight:400;color:var(--text-muted);">(SDKI)</span></h4>
                 <div class="form-group"><label class="form-label">Kategori Diagnosis</label>
-                    <select class="form-select" id="sdkiKategori" onchange="updateSubkategoriOptions(); searchSDKI();">
+                    <select class="form-select no-print" id="sdkiKategori" onchange="updateSubkategoriOptions(); searchSDKI();">
                         <option value="">-- Semua Kategori --</option>
                         <option value="fisiologis">Fisiologis</option>
                         <option value="psikologis">Psikologis</option>
@@ -923,25 +889,27 @@
                     </select>
                 </div>
                 <div class="form-group"><label class="form-label">Subkategori</label>
-                    <select class="form-select" id="sdkiSubkategori" onchange="searchSDKI();">
+                    <select class="form-select no-print" id="sdkiSubkategori" onchange="searchSDKI();">
                         <option value="">-- Semua Subkategori --</option>
                     </select>
                 </div>
                 <div class="form-group"><label class="form-label">Cari / Pilih Diagnosis</label>
-                    <input type="text" class="form-input" id="sdkiSearch" placeholder="Ketik untuk mencari diagnosis..." oninput="searchSDKI()" />
+                    <input type="text" class="form-input no-print" id="sdkiSearch" placeholder="Ketik untuk mencari diagnosis..." oninput="searchSDKI()" />
                     <div id="sdkiResults" style="max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-sm); margin-top:6px; display:none; background:#fff; box-shadow:var(--shadow-sm);"></div>
                 </div>
                 <div class="form-group"><label class="form-label">Diagnosis Terpilih</label><div id="selectedDiagnoses" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;"></div></div>
                 <textarea class="form-textarea" id="asuhanDiagnosis" rows="4" placeholder="Diagnosis akan otomatis terisi di sini. Anda juga bisa menambahkan catatan tambahan..."></textarea>
 
                 <h4 style="color:var(--primary-dark); margin-top:20px; margin-bottom:8px;">4. Rencana Asuhan <span style="font-weight:400;color:var(--text-muted);">(dengan SLKI &amp; SIKI)</span></h4>
-                <table class="dynamic-table" id="rencanaTable"><thead><tr><th>Diagnosis</th><th>Tujuan &amp; Kriteria (SLKI)</th><th>Intervensi (SIKI)</th><th>Rasional</th><th></th></tr></thead><tbody></tbody></table>
-                <button class="btn btn-sm btn-outline" onclick="tambahBaris('rencana')">+ Tambah</button>
+                <div class="table-wrapper">
+                    <table class="dynamic-table" id="rencanaTable"><thead><tr><th>Diagnosis</th><th>Tujuan &amp; Kriteria (SLKI)</th><th>Intervensi (SIKI)</th><th>Rasional</th><th></th></tr></thead><tbody></tbody></table>
+                </div>
+                <button class="btn btn-sm btn-outline no-print" onclick="tambahBaris('rencana')">+ Tambah</button>
 
                 <h4 style="color:var(--primary-dark); margin-top:20px; margin-bottom:8px;">5. Implementasi &amp; Evaluasi</h4>
                 <textarea class="form-textarea" id="asuhanImplementasi" rows="6" placeholder="Tuliskan catatan implementasi dan evaluasi keperawatan secara naratif..."></textarea>
 
-                <button class="btn btn-primary btn-block mt-20" onclick="simpanAsuhan()">💾 Simpan Asuhan</button>
+                <button class="btn btn-primary btn-block mt-20 no-print" onclick="simpanAsuhan()">➡️ Lanjut</button>
             </div>
         </div>
 
@@ -950,15 +918,15 @@
             <div class="card">
                 <div class="card-header"><div class="card-icon purple">📊</div><div class="card-title">Review Seluruh Pengkajian</div></div>
                 <div id="reviewContent"></div>
-                <div style="display:flex; gap:14px; justify-content:center; margin-top:20px; flex-wrap:wrap;">
+                <div style="display:flex; gap:14px; justify-content:center; margin-top:20px; flex-wrap:wrap;" class="no-print">
                     <button class="btn btn-primary" onclick="syncFinal()">📤 Kirim ke Dosen</button>
-                    <button class="btn btn-success" onclick="window.print()">🖨️ Cetak / PDF</button>
+                    <button class="btn btn-success" onclick="preparePrint()">🖨️ Cetak / PDF</button>
                 </div>
             </div>
         </div>
 
         <!-- ─── BOTTOM NAV ─── -->
-        <div class="nav-tabs" id="navTabs">
+        <div class="nav-tabs no-print" id="navTabs">
             <button class="nav-tab active" data-page="page-welcome"><span class="tab-icon">🏠</span><span class="tab-label">Beranda</span></button>
             <button class="nav-tab" data-page="page-demografi"><span class="tab-icon">📋</span><span class="tab-label">Demografi</span></button>
             <button class="nav-tab" data-page="page-instrumen"><span class="tab-icon">🔬</span><span class="tab-label">Instrumen</span></button>
@@ -968,8 +936,8 @@
     </div>
 
     <!-- ─── MODAL SIKI ─── -->
-    <div id="sikiModal">
-        <div class="modal-content">
+    <div id="sikiModal" class="modal-overlay" onclick="closeModalOnBackdrop(event, 'sikiModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h3>Pilih Intervensi SIKI</h3>
                 <button class="modal-close" onclick="closeSIKIModal()">&times;</button>
@@ -990,15 +958,13 @@
             <div class="form-group">
                 <input type="text" id="sikiSearchInput" class="form-input" placeholder="Cari intervensi (kode/nama)..." oninput="renderSikiResults();">
             </div>
-            <div id="sikiResultsList">
-                <!-- hasil akan diisi JS -->
-            </div>
+            <div id="sikiResultsList" class="modal-results-list"></div>
         </div>
     </div>
 
     <!-- ─── MODAL SLKI ─── -->
-    <div id="slkiModal">
-        <div class="modal-content">
+    <div id="slkiModal" class="modal-overlay" onclick="closeModalOnBackdrop(event, 'slkiModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h3>Pilih Luaran (SLKI)</h3>
                 <button class="modal-close" onclick="closeSLKIModal()">&times;</button>
@@ -1019,9 +985,7 @@
             <div class="form-group">
                 <input type="text" id="slkiSearchInput" class="form-input" placeholder="Cari luaran (kode/nama)..." oninput="renderSlkiResults();">
             </div>
-            <div id="slkiResultsList">
-                <!-- hasil akan diisi JS -->
-            </div>
+            <div id="slkiResultsList" class="modal-results-list"></div>
         </div>
     </div>
 
@@ -1040,10 +1004,25 @@
             setTimeout(() => el.remove(), 3200);
         }
 
-        function saveState() { sessionStorage.setItem('geroApp', JSON.stringify(State)); }
+        function saveState() {
+            try {
+                State.lastSaved = Date.now();
+                localStorage.setItem('geroApp', JSON.stringify(State));
+            } catch (e) {
+                console.error('Gagal menyimpan state:', e);
+            }
+        }
 
         function loadState() {
-            try { const d = JSON.parse(sessionStorage.getItem('geroApp')); if (d) Object.assign(State, d); } catch (e) {}
+            try {
+                const d = JSON.parse(localStorage.getItem('geroApp'));
+                if (d) {
+                    // Merge dengan hati-hati, jangan hapus struktur default
+                    Object.assign(State, d);
+                }
+            } catch (e) {
+                console.log('Tidak ada data lokal yang valid');
+            }
         }
 
         // ─── STATE ────────────────────────────────────────────────
@@ -1054,7 +1033,8 @@
             asuhan: { 1: {}, 2: {} },
             weekDemo: 1,
             weekInst: 1,
-            weekAsuhan: 1
+            weekAsuhan: 1,
+            lastSaved: 0
         };
 
         // ─── DATABASE INSTRUMEN LENGKAP ──────────────────────────
@@ -1080,7 +1060,7 @@
                 title: 'Lawton IADL Scale',
                 max: 8,
                 items: [
-                    { id: 'l1', q: 'Kemampuan menggunakan telepon', opt: [{ t: 'Tidak mampu (0)', v: 0 }, { t: 'Mampu menerima panggilan (1)', v: 1 }, { t: 'Mampu menelepon dengan bantuan (1)', v: 1 }, { t: 'Mampu menelepon sendiri (1)', v: 1 }] },
+                    { id: 'l1', q: 'Kemampuan menggunakan telepon', opt: [{ t: 'Tidak mampu (0)', v: 0 }, { t: 'Menerima panggilan saja (1)', v: 1 }, { t: 'Menelepon mandiri (2)', v: 2 }] },
                     { id: 'l2', q: 'Belanja', opt: [{ t: 'Tidak mampu (0)', v: 0 }, { t: 'Butuh pendamping (0)', v: 0 }, { t: 'Belanja mandiri (1)', v: 1 }] },
                     { id: 'l3', q: 'Persiapan makanan', opt: [{ t: 'Tidak mampu (0)', v: 0 }, { t: 'Butuh bantuan (0)', v: 0 }, { t: 'Memasak mandiri (1)', v: 1 }] },
                     { id: 'l4', q: 'Pekerjaan rumah tangga', opt: [{ t: 'Tidak mampu (0)', v: 0 }, { t: 'Hanya tugas ringan (1)', v: 1 }, { t: 'Semua pekerjaan rumah (1)', v: 1 }] },
@@ -1091,30 +1071,18 @@
                 ],
                 interp: s => s === 8 ? { t: 'Mandiri Penuh IADL', c: 'independent' } : s >= 5 ? { t: 'Ketergantungan Ringan IADL', c: 'mild' } : s >= 3 ? { t: 'Ketergantungan Sedang IADL', c: 'moderate' } : { t: 'Ketergantungan Berat IADL', c: 'severe' }
             },
-            mna: {
-                title: 'Mini Nutritional Assessment (MNA)',
-                max: 30,
+            mna_sf: {
+                title: 'MNA-SF (Mini Nutritional Assessment - Short Form)',
+                max: 14,
                 items: [
-                    { id: 'm1', q: 'Penurunan berat badak dalam 3 bulan terakhir', opt: [{ t: 'Penurunan >3 kg (0)', v: 0 }, { t: 'Tidak tahu (1)', v: 1 }, { t: 'Penurunan 1-3 kg (2)', v: 2 }, { t: 'Tidak ada penurunan (3)', v: 3 }] },
-                    { id: 'm2', q: 'Asupan makanan menurun', opt: [{ t: 'Penurunan berat (0)', v: 0 }, { t: 'Tidak ada penurunan (1)', v: 1 }] },
-                    { id: 'm3', q: 'Mobilitas', opt: [{ t: 'Terbaring (0)', v: 0 }, { t: 'Kursi roda (1)', v: 1 }, { t: 'Dapat berjalan (2)', v: 2 }] },
-                    { id: 'm4', q: 'Stres psikologis / penyakit akut', opt: [{ t: 'Ya (0)', v: 0 }, { t: 'Tidak (2)', v: 2 }] },
-                    { id: 'm5', q: 'Masalah neuropsikologis', opt: [{ t: 'Demensia berat / depresi (0)', v: 0 }, { t: 'Demensia ringan (1)', v: 1 }, { t: 'Tidak ada (2)', v: 2 }] },
-                    { id: 'm6', q: 'BMI (Body Mass Index)', opt: [{ t: '<19 (0)', v: 0 }, { t: '19-<21 (1)', v: 1 }, { t: '21-<23 (2)', v: 2 }, { t: '≥23 (3)', v: 3 }] },
-                    { id: 'm7', q: 'Lingkar lengan atas (LILA)', opt: [{ t: '<21 cm (0)', v: 0 }, { t: '21-22 cm (0.5)', v: 0.5 }, { t: '>22 cm (1)', v: 1 }] },
-                    { id: 'm8', q: 'Lingkar betis', opt: [{ t: '<31 cm (0)', v: 0 }, { t: '≥31 cm (1)', v: 1 }] },
-                    { id: 'm9', q: 'Asupan protein', opt: [{ t: '<1 porsi/hari (0)', v: 0 }, { t: '1 porsi/hari (0.5)', v: 0.5 }, { t: '2 porsi/hari (1)', v: 1 }] },
-                    { id: 'm10', q: 'Asupan sayur & buah', opt: [{ t: '<1 porsi/hari (0)', v: 0 }, { t: '1 porsi/hari (0.5)', v: 0.5 }, { t: '2 porsi/hari (1)', v: 1 }] },
-                    { id: 'm11', q: 'Asupan cairan', opt: [{ t: '<3 gelas/hari (0)', v: 0 }, { t: '3-5 gelas/hari (0.5)', v: 0.5 }, { t: '>5 gelas/hari (1)', v: 1 }] },
-                    { id: 'm12', q: 'Mode makan', opt: [{ t: 'Bantuan (0)', v: 0 }, { t: 'Mandiri tapi sulit (1)', v: 1 }, { t: 'Mandiri (2)', v: 2 }] },
-                    { id: 'm13', q: 'Penilaian status nutrisi diri', opt: [{ t: 'Malnutrisi (0)', v: 0 }, { t: 'Tidak tahu (1)', v: 1 }, { t: 'Nutrisi baik (2)', v: 2 }] },
-                    { id: 'm14', q: 'Perbandingan kesehatan dengan teman sebaya', opt: [{ t: 'Lebih buruk (0)', v: 0 }, { t: 'Tidak tahu (0.5)', v: 0.5 }, { t: 'Sama (1)', v: 1 }, { t: 'Lebih baik (2)', v: 2 }] },
-                    { id: 'm15', q: 'Lingkar lengan atas (LILA) - Screening', opt: [{ t: '<21 cm (0)', v: 0 }, { t: '21-22 cm (1)', v: 1 }, { t: '>22 cm (2)', v: 2 }] },
-                    { id: 'm16', q: 'Lingkar betis - Screening', opt: [{ t: '<31 cm (0)', v: 0 }, { t: '≥31 cm (1)', v: 1 }] },
-                    { id: 'm17', q: 'Penurunan berat badan - Screening', opt: [{ t: '>3 kg (0)', v: 0 }, { t: 'Tidak tahu (1)', v: 1 }, { t: '1-3 kg (2)', v: 2 }, { t: 'Tidak ada (3)', v: 3 }] },
-                    { id: 'm18', q: 'Mobilitas - Screening', opt: [{ t: 'Terbaring (0)', v: 0 }, { t: 'Kursi roda (1)', v: 1 }, { t: 'Berjalan (2)', v: 2 }] }
+                    { id: 'mna1', q: 'Penurunan asupan makanan akibat kehilangan nafsu makan, masalah pencernaan, kesulitan mengunyah atau menelan dalam 3 bulan terakhir', opt: [{ t: 'Penurunan berat (0)', v: 0 }, { t: 'Penurunan sedang (1)', v: 1 }, { t: 'Tidak ada penurunan (2)', v: 2 }] },
+                    { id: 'mna2', q: 'Penurunan berat badan selama 3 bulan terakhir', opt: [{ t: 'Penurunan >3 kg (0)', v: 0 }, { t: 'Tidak tahu (1)', v: 1 }, { t: 'Penurunan 1-3 kg (2)', v: 2 }, { t: 'Tidak ada penurunan (3)', v: 3 }] },
+                    { id: 'mna3', q: 'Mobilitas', opt: [{ t: 'Terbaring / kursi roda (0)', v: 0 }, { t: 'Bisa berjalan tapi tidak keluar rumah (1)', v: 1 }, { t: 'Keluar rumah (2)', v: 2 }] },
+                    { id: 'mna4', q: 'Mengalami stres psikologis atau penyakit akut dalam 3 bulan terakhir', opt: [{ t: 'Ya (0)', v: 0 }, { t: 'Tidak (2)', v: 2 }] },
+                    { id: 'mna5', q: 'Masalah neuropsikologis', opt: [{ t: 'Demensia berat / depresi (0)', v: 0 }, { t: 'Demensia ringan (1)', v: 1 }, { t: 'Tidak ada (2)', v: 2 }] },
+                    { id: 'mna6', q: 'Indeks Massa Tubuh (IMT)', opt: [{ t: 'IMT <19 (0)', v: 0 }, { t: 'IMT 19-<21 (1)', v: 1 }, { t: 'IMT 21-<23 (2)', v: 2 }, { t: 'IMT ≥23 (3)', v: 3 }] }
                 ],
-                interp: s => s >= 24 ? { t: 'Status Nutrisi Baik', c: 'normal' } : s >= 17 ? { t: 'Risiko Malnutrisi', c: 'mild' } : { t: 'Malnutrisi', c: 'severe' }
+                interp: s => s >= 12 ? { t: 'Status Nutrisi Normal (≥12)', c: 'normal' } : s >= 8 ? { t: 'Risiko Malnutrisi (8-11)', c: 'mild' } : { t: 'Malnutrisi (<8)', c: 'severe' }
             },
             frail: {
                 title: 'Frailty Index (FI)',
@@ -1138,11 +1106,11 @@
                     { id: 's4', q: 'Kesulitan naik 10 tangga', opt: [{ t: 'Tidak (0)', v: 0 }, { t: 'Ringan (1)', v: 1 }, { t: 'Sedang (2)', v: 2 }] },
                     { id: 's5', q: 'Jatuh dalam 1 tahun terakhir', opt: [{ t: 'Tidak (0)', v: 0 }, { t: '1-3 kali (1)', v: 1 }, { t: '≥4 kali (2)', v: 2 }] }
                 ],
-                interp: s => s >= 4 ? { t: 'Risiko Sarcopenia Tinggi', c: 'severe' } : { t: 'Risiko Sarcopenia Rendah', c: 'normal' }
+                interp: s => s >= 4 ? { t: 'Risiko Sarcopenia Tinggi (≥4)', c: 'severe' } : { t: 'Risiko Sarcopenia Rendah (<4)', c: 'normal' }
             },
             tug: {
                 title: 'Timed Up and Go (TUG)',
-                max: 1,
+                max: 2,
                 items: [
                     { id: 't1', q: 'Waktu yang dibutuhkan untuk bangkit, berjalan 3 meter, berbalik, dan duduk kembali', opt: [{ t: '<10 detik (0)', v: 0 }, { t: '10-20 detik (1)', v: 1 }, { t: '>20 detik (2)', v: 2 }] }
                 ],
@@ -1163,7 +1131,7 @@
                     { id: 'a9', q: 'Nama presiden / kepala negara saat ini', opt: [{ t: 'Salah (0)', v: 0 }, { t: 'Benar (1)', v: 1 }] },
                     { id: 'a10', q: 'Menghitung mundur 20-1', opt: [{ t: 'Salah (0)', v: 0 }, { t: 'Benar (1)', v: 1 }] }
                 ],
-                interp: s => s >= 8 ? { t: 'Kognitif Normal', c: 'normal' } : s >= 6 ? { t: 'Gangguan Kognitif Ringan', c: 'mild' } : { t: 'Gangguan Kognitif Berat / Demensia', c: 'severe' }
+                interp: s => s >= 8 ? { t: 'Kognitif Normal (≥8)', c: 'normal' } : s >= 6 ? { t: 'Gangguan Kognitif Ringan (6-7)', c: 'mild' } : { t: 'Gangguan Kognitif Berat / Demensia (<6)', c: 'severe' }
             },
             gds: {
                 title: 'Geriatric Depression Scale (GDS-15)',
@@ -1185,44 +1153,40 @@
                     { id: 'g14', q: 'Apakah Anda merasa orang lain lebih baik?', opt: [{ t: 'Ya (1)', v: 1 }, { t: 'Tidak (0)', v: 0 }] },
                     { id: 'g15', q: 'Apakah Anda lebih suka menangis?', opt: [{ t: 'Ya (1)', v: 1 }, { t: 'Tidak (0)', v: 0 }] }
                 ],
-                interp: s => s <= 4 ? { t: 'Tidak Depresi', c: 'normal' } : s <= 9 ? { t: 'Depresi Ringan', c: 'mild' } : { t: 'Depresi Berat', c: 'severe' }
+                interp: s => s <= 4 ? { t: 'Tidak Depresi (0-4)', c: 'normal' } : s <= 9 ? { t: 'Depresi Ringan (5-9)', c: 'mild' } : { t: 'Depresi Berat (10-15)', c: 'severe' }
             },
             whoqol: {
-                title: 'WHOQOL-BREF (Kualitas Hidup)',
-                max: 100,
+                title: 'WHOQOL-OLD (Kualitas Hidup Lansia)',
+                max: 120,
                 items: [
-                    { id: 'w1', q: 'Bagaimana penilaian kualitas hidup Anda?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w2', q: 'Seberapa puas Anda dengan kesehatan?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
-                    { id: 'w3', q: 'Sejauh mana rasa sakit menghalangi aktivitas?', opt: [{ t: 'Sangat (1)', v: 1 }, { t: 'Cukup (2)', v: 2 }, { t: 'Sedikit (3)', v: 3 }, { t: 'Sedikit sekali (4)', v: 4 }, { t: 'Tidak sama sekali (5)', v: 5 }] },
-                    { id: 'w4', q: 'Seberapa banyak Anda butuh perawatan medis?', opt: [{ t: 'Sangat banyak (1)', v: 1 }, { t: 'Cukup (2)', v: 2 }, { t: 'Sedikit (3)', v: 3 }, { t: 'Sedikit sekali (4)', v: 4 }, { t: 'Tidak sama sekali (5)', v: 5 }] },
-                    { id: 'w5', q: 'Seberapa bahagia Anda?', opt: [{ t: 'Sangat tidak bahagia (1)', v: 1 }, { t: 'Tidak bahagia (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Bahagia (4)', v: 4 }, { t: 'Sangat bahagia (5)', v: 5 }] },
-                    { id: 'w6', q: 'Seberapa berharga Anda merasa?', opt: [{ t: 'Sangat tidak (1)', v: 1 }, { t: 'Tidak (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Berharga (4)', v: 4 }, { t: 'Sangat berharga (5)', v: 5 }] },
-                    { id: 'w7', q: 'Seberapa baik konsentrasi Anda?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w8', q: 'Seberapa aman Anda merasa?', opt: [{ t: 'Sangat tidak aman (1)', v: 1 }, { t: 'Tidak aman (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Aman (4)', v: 4 }, { t: 'Sangat aman (5)', v: 5 }] },
-                    { id: 'w9', q: 'Seberapa sehat lingkungan fisik Anda?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w10', q: 'Seberapa cukup uang Anda?', opt: [{ t: 'Sangat tidak (1)', v: 1 }, { t: 'Tidak (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Cukup (4)', v: 4 }, { t: 'Sangat cukup (5)', v: 5 }] },
-                    { id: 'w11', q: 'Seberapa mudah informasi kesehatan didapat?', opt: [{ t: 'Sangat sulit (1)', v: 1 }, { t: 'Sulit (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Mudah (4)', v: 4 }, { t: 'Sangat mudah (5)', v: 5 }] },
-                    { id: 'w12', q: 'Seberapa sering aktivitas rekreasi?', opt: [{ t: 'Tidak pernah (1)', v: 1 }, { t: 'Jarang (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Sering (4)', v: 4 }, { t: 'Sangat sering (5)', v: 5 }] },
-                    { id: 'w13', q: 'Seberapa baik tidur Anda?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w14', q: 'Seberapa baik kemampuan sehari-hari?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w15', q: 'Seberapa puas dengan diri sendiri?', opt: [{ t: 'Sangat tidak (1)', v: 1 }, { t: 'Tidak (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
-                    { id: 'w16', q: 'Seberapa baik hubungan personal?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w17', q: 'Seberapa baik kehidupan seksual?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w18', q: 'Seberapa baik dukungan teman?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w19', q: 'Seberapa baik kondisi tempat tinggal?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w20', q: 'Seberapa baik akses transportasi?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w21', q: 'Seberapa sering perasaan negatif?', opt: [{ t: 'Selalu (1)', v: 1 }, { t: 'Sering (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Jarang (4)', v: 4 }, { t: 'Tidak pernah (5)', v: 5 }] },
-                    { id: 'w22', q: 'Seberapa sering perasaan positif?', opt: [{ t: 'Tidak pernah (1)', v: 1 }, { t: 'Jarang (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Sering (4)', v: 4 }, { t: 'Selalu (5)', v: 5 }] },
-                    { id: 'w23', q: 'Seberapa baik kemampuan bekerja?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w24', q: 'Seberapa puas dengan penampilan?', opt: [{ t: 'Sangat tidak (1)', v: 1 }, { t: 'Tidak (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
-                    { id: 'w25', q: 'Seberapa baik kondisi medis?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
-                    { id: 'w26', q: 'Seberapa mudah berjalan?', opt: [{ t: 'Sangat sulit (1)', v: 1 }, { t: 'Sulit (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Mudah (4)', v: 4 }, { t: 'Sangat mudah (5)', v: 5 }] }
+                    { id: 'wo1', q: 'Seberapa baik kemampuan indra Anda (penglihatan, pendengaran, penciuman, perasa)?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] },
+                    { id: 'wo2', q: 'Sejauh mana Anda merasa mampu melakukan aktivitas sehari-hari secara mandiri?', opt: [{ t: 'Sangat tidak mampu (1)', v: 1 }, { t: 'Tidak mampu (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Mampu (4)', v: 4 }, { t: 'Sangat mampu (5)', v: 5 }] },
+                    { id: 'wo3', q: 'Seberapa puas Anda dengan kemampuan untuk berpindah dari satu tempat ke tempat lain?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo4', q: 'Seberapa puas Anda dengan kemampuan untuk mengurus diri sendiri?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo5', q: 'Seberapa sering Anda merasa memiliki sesuatu yang bermanfaat untuk dilakukan?', opt: [{ t: 'Tidak pernah (1)', v: 1 }, { t: 'Jarang (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Sering (4)', v: 4 }, { t: 'Selalu (5)', v: 5 }] },
+                    { id: 'wo6', q: 'Seberapa puas Anda dengan kesempatan untuk belajar hal baru?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo7', q: 'Seberapa puas Anda dengan kemampuan untuk berkonsentrasi?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo8', q: 'Seberapa puas Anda dengan kemampuan untuk mengambil keputusan?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo9', q: 'Seberapa puas Anda dengan hubungan pribadi Anda?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo10', q: 'Seberapa puas Anda dengan dukungan yang Anda terima dari teman?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo11', q: 'Seberapa puas Anda dengan kondisi tempat tinggal Anda?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo12', q: 'Seberapa puas Anda dengan akses ke layanan kesehatan?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo13', q: 'Seberapa sering Anda merasa khawatir tentang kematian?', opt: [{ t: 'Selalu (1)', v: 1 }, { t: 'Sering (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Jarang (4)', v: 4 }, { t: 'Tidak pernah (5)', v: 5 }] },
+                    { id: 'wo14', q: 'Seberapa sering pikiran tentang kematian mengganggu aktivitas Anda?', opt: [{ t: 'Selalu (1)', v: 1 }, { t: 'Sering (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Jarang (4)', v: 4 }, { t: 'Tidak pernah (5)', v: 5 }] },
+                    { id: 'wo15', q: 'Seberapa puas Anda dengan kehidupan seksual Anda?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo16', q: 'Seberapa puas Anda dengan kemampuan untuk memberi dan menerima kasih sayang?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo17', q: 'Seberapa puas Anda dengan penampilan fisik Anda?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo18', q: 'Seberapa puas Anda dengan citra tubuh Anda?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo19', q: 'Seberapa sering Anda merasa negatif tentang diri sendiri?', opt: [{ t: 'Selalu (1)', v: 1 }, { t: 'Sering (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Jarang (4)', v: 4 }, { t: 'Tidak pernah (5)', v: 5 }] },
+                    { id: 'wo20', q: 'Seberapa puas Anda dengan kemampuan untuk berkomunikasi?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo21', q: 'Seberapa puas Anda dengan kesempatan untuk berpartisipasi dalam kegiatan sosial?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo22', q: 'Seberapa puas Anda dengan peran Anda dalam keluarga?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo23', q: 'Seberapa puas Anda dengan keuangan Anda?', opt: [{ t: 'Sangat tidak puas (1)', v: 1 }, { t: 'Tidak puas (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Puas (4)', v: 4 }, { t: 'Sangat puas (5)', v: 5 }] },
+                    { id: 'wo24', q: 'Bagaimana penilaian Anda terhadap kualitas hidup Anda secara keseluruhan?', opt: [{ t: 'Sangat buruk (1)', v: 1 }, { t: 'Buruk (2)', v: 2 }, { t: 'Sedang (3)', v: 3 }, { t: 'Baik (4)', v: 4 }, { t: 'Sangat baik (5)', v: 5 }] }
                 ],
                 interp: s => {
-                    const raw = s;
-                    const transformed = (raw - 26) * (100 / 104);
-                    const score = Math.round(transformed);
-                    return score >= 60 ? { t: 'Kualitas Hidup Baik (' + score + ')', c: 'normal' } : score >= 40 ? { t: 'Kualitas Hidup Sedang (' + score + ')', c: 'mild' } : { t: 'Kualitas Hidup Buruk (' + score + ')', c: 'severe' };
+                    const mean = s / 24;
+                    return mean >= 4 ? { t: 'Kualitas Hidup Baik (' + mean.toFixed(1) + '/5)', c: 'normal' } : mean >= 3 ? { t: 'Kualitas Hidup Sedang (' + mean.toFixed(1) + '/5)', c: 'mild' } : { t: 'Kualitas Hidup Buruk (' + mean.toFixed(1) + '/5)', c: 'severe' };
                 }
             },
             loneliness: {
@@ -1238,7 +1202,29 @@
                     { id: 'u7', q: 'Saya merasa dikucilkan', opt: [{ t: 'Tidak pernah (1)', v: 1 }, { t: 'Jarang (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Sering (4)', v: 4 }] },
                     { id: 'u8', q: 'Saya merasa tidak ada yang bisa diajak bicara', opt: [{ t: 'Tidak pernah (1)', v: 1 }, { t: 'Jarang (2)', v: 2 }, { t: 'Kadang (3)', v: 3 }, { t: 'Sering (4)', v: 4 }] }
                 ],
-                interp: s => s <= 16 ? { t: 'Tidak Kesepian', c: 'normal' } : s <= 24 ? { t: 'Kesepian Ringan', c: 'mild' } : { t: 'Kesepian Berat', c: 'severe' }
+                interp: s => s <= 16 ? { t: 'Tidak Kesepian (≤16)', c: 'normal' } : s <= 24 ? { t: 'Kesepian Ringan (17-24)', c: 'mild' } : { t: 'Kesepian Berat (>24)', c: 'severe' }
+            },
+            gad7: {
+                title: 'GAD-7 (Generalized Anxiety Disorder-7)',
+                max: 21,
+                items: [
+                    { id: 'ga1', q: 'Merasa gugup, cemas, atau tegang', opt: [{ t: 'Tidak sama sekali (0)', v: 0 }, { t: 'Beberapa hari (1)', v: 1 }, { t: 'Lebih dari separuh hari (2)', v: 2 }, { t: 'Hampir setiap hari (3)', v: 3 }] },
+                    { id: 'ga2', q: 'Tidak dapat menghentikan atau mengendalikan kekhawatiran', opt: [{ t: 'Tidak sama sekali (0)', v: 0 }, { t: 'Beberapa hari (1)', v: 1 }, { t: 'Lebih dari separuh hari (2)', v: 2 }, { t: 'Hampir setiap hari (3)', v: 3 }] },
+                    { id: 'ga3', q: 'Terlalu mengkhawatirkan berbagai hal', opt: [{ t: 'Tidak sama sekali (0)', v: 0 }, { t: 'Beberapa hari (1)', v: 1 }, { t: 'Lebih dari separuh hari (2)', v: 2 }, { t: 'Hampir setiap hari (3)', v: 3 }] },
+                    { id: 'ga4', q: 'Sulit untuk bersantai', opt: [{ t: 'Tidak sama sekali (0)', v: 0 }, { t: 'Beberapa hari (1)', v: 1 }, { t: 'Lebih dari separuh hari (2)', v: 2 }, { t: 'Hampir setiap hari (3)', v: 3 }] },
+                    { id: 'ga5', q: 'Sangat gelisah sehingga sulit untuk duduk diam', opt: [{ t: 'Tidak sama sekali (0)', v: 0 }, { t: 'Beberapa hari (1)', v: 1 }, { t: 'Lebih dari separuh hari (2)', v: 2 }, { t: 'Hampir setiap hari (3)', v: 3 }] },
+                    { id: 'ga6', q: 'Mudah marah atau mudah tersinggung', opt: [{ t: 'Tidak sama sekali (0)', v: 0 }, { t: 'Beberapa hari (1)', v: 1 }, { t: 'Lebih dari separuh hari (2)', v: 2 }, { t: 'Hampir setiap hari (3)', v: 3 }] },
+                    { id: 'ga7', q: 'Merasa takut seolah-olah sesuatu yang buruk akan terjadi', opt: [{ t: 'Tidak sama sekali (0)', v: 0 }, { t: 'Beberapa hari (1)', v: 1 }, { t: 'Lebih dari separuh hari (2)', v: 2 }, { t: 'Hampir setiap hari (3)', v: 3 }] }
+                ],
+                interp: s => s <= 4 ? { t: 'Ansietas Minimal (0-4)', c: 'normal' } : s <= 9 ? { t: 'Ansietas Ringan (5-9)', c: 'mild' } : s <= 14 ? { t: 'Ansietas Sedang (10-14)', c: 'moderate' } : { t: 'Ansietas Berat (15-21)', c: 'severe' }
+            },
+            nrs: {
+                title: 'NRS Nyeri (Numeric Rating Scale)',
+                max: 10,
+                items: [
+                    { id: 'n1', q: 'Tingkat nyeri yang dirasakan saat ini (0 = tidak nyeri, 10 = nyeri terburuk)', opt: [{ t: '0 - Tidak Nyeri', v: 0 }, { t: '1', v: 1 }, { t: '2', v: 2 }, { t: '3', v: 3 }, { t: '4', v: 4 }, { t: '5', v: 5 }, { t: '6', v: 6 }, { t: '7', v: 7 }, { t: '8', v: 8 }, { t: '9', v: 9 }, { t: '10 - Nyeri Terburuk', v: 10 }] }
+                ],
+                interp: s => s === 0 ? { t: 'Tidak Nyeri (0)', c: 'normal' } : s <= 3 ? { t: 'Nyeri Ringan (1-3)', c: 'mild' } : s <= 6 ? { t: 'Nyeri Sedang (4-6)', c: 'moderate' } : { t: 'Nyeri Berat (7-10)', c: 'severe' }
             },
             sleep: {
                 title: 'Pittsburgh Sleep Quality Index (PSQI)',
@@ -1252,7 +1238,7 @@
                     { id: 'p6', q: 'Disfungsi siang hari', opt: [{ t: 'Tidak (0)', v: 0 }, { t: '<1x/minggu (1)', v: 1 }, { t: '1-2x/minggu (2)', v: 2 }, { t: '≥3x/minggu (3)', v: 3 }] },
                     { id: 'p7', q: 'Kualitas tidur subjektif', opt: [{ t: 'Sangat baik (0)', v: 0 }, { t: 'Cukup baik (1)', v: 1 }, { t: 'Cukup buruk (2)', v: 2 }, { t: 'Sangat buruk (3)', v: 3 }] }
                 ],
-                interp: s => s <= 4 ? { t: 'Kualitas Tidur Baik', c: 'normal' } : s <= 8 ? { t: 'Kualitas Tidur Sedang', c: 'mild' } : { t: 'Kualitas Tidur Buruk', c: 'severe' }
+                interp: s => s <= 4 ? { t: 'Kualitas Tidur Baik (≤4)', c: 'normal' } : s <= 8 ? { t: 'Kualitas Tidur Sedang (5-8)', c: 'mild' } : { t: 'Kualitas Tidur Buruk (>8)', c: 'severe' }
             },
             dssi: {
                 title: 'Duke Social Support Index (DSSI)',
@@ -1270,7 +1256,7 @@
                     { id: 'd10', q: 'Seseorang untuk nasihat masalah keuangan', opt: [{ t: 'Tidak ada (0)', v: 0 }, { t: 'Ada (1)', v: 1 }] },
                     { id: 'd11', q: 'Kepuasan dukungan sosial', opt: [{ t: 'Tidak puas (0)', v: 0 }, { t: 'Puas (1)', v: 1 }] }
                 ],
-                interp: s => s >= 9 ? { t: 'Dukungan Sosial Baik', c: 'normal' } : s >= 6 ? { t: 'Dukungan Sosial Sedang', c: 'mild' } : { t: 'Dukungan Sosial Buruk', c: 'severe' }
+                interp: s => s >= 9 ? { t: 'Dukungan Sosial Baik (≥9)', c: 'normal' } : s >= 6 ? { t: 'Dukungan Sosial Sedang (6-8)', c: 'mild' } : { t: 'Dukungan Sosial Buruk (<6)', c: 'severe' }
             },
             mspss: {
                 title: 'Multidimensional Scale of Perceived Social Support (MSPSS)',
@@ -1311,7 +1297,7 @@
                     { id: 'fa11', q: 'Saya merasa ada kehadiran yang lebih tinggi', opt: [{ t: '0', v: 0 }, { t: '1', v: 1 }, { t: '2', v: 2 }, { t: '3', v: 3 }, { t: '4', v: 4 }] },
                     { id: 'fa12', q: 'Saya merasa ada keberadaan spiritual dalam hidup saya', opt: [{ t: '0', v: 0 }, { t: '1', v: 1 }, { t: '2', v: 2 }, { t: '3', v: 3 }, { t: '4', v: 4 }] }
                 ],
-                interp: s => s >= 36 ? { t: 'Kesejahteraan Spiritual Baik', c: 'normal' } : s >= 24 ? { t: 'Kesejahteraan Spiritual Sedang', c: 'mild' } : { t: 'Kesejahteraan Spiritual Buruk', c: 'severe' }
+                interp: s => s >= 36 ? { t: 'Kesejahteraan Spiritual Baik (≥36)', c: 'normal' } : s >= 24 ? { t: 'Kesejahteraan Spiritual Sedang (24-35)', c: 'mild' } : { t: 'Kesejahteraan Spiritual Buruk (<24)', c: 'severe' }
             },
             rs14: {
                 title: 'Resilience Scale-14 (RS-14)',
@@ -1340,7 +1326,6 @@
         };
 
         // ─── SDKI DATABASE ──────────────────────────────────────
-
         const SDKI_DATABASE = {
             fisiologis: {
                 respirasi: [
@@ -1653,10 +1638,6 @@
             lingkungan: { keamanan: 'Keamanan & Proteksi' }
         };
 
-        let activeInst = 'barthel';
-        let selectedSDKIList = [];
-        let currentSLKIRowIndex = null;
-
         // ─── SIKI DATABASE LENGKAP ─────────────────────────────
         const SIKI_DATABASE = {
             fisiologis: {
@@ -1850,6 +1831,9 @@
             lingkungan: { keamanan: 'Keamanan & Proteksi' }
         };
 
+        let activeInst = 'barthel';
+        let selectedSDKIList = [];
+        let currentSLKIRowIndex = null;
         let currentSIKIRowIndex = null;
 
         // ─── SLKI FUNCTIONS ──────────────────────────────────────
@@ -1863,7 +1847,8 @@
 
         function showSLKIModal(rowIndex) {
             currentSLKIRowIndex = rowIndex;
-            document.getElementById('slkiModal').style.display = 'flex';
+            const modal = document.getElementById('slkiModal');
+            modal.classList.add('active');
             document.getElementById('slkiSearchInput').value = '';
             document.getElementById('slkiKategoriFilter').value = '';
             document.getElementById('slkiSubkategoriFilter').innerHTML = '<option value="">-- Semua Subkategori --</option>';
@@ -1872,7 +1857,7 @@
         }
 
         function closeSLKIModal() {
-            document.getElementById('slkiModal').style.display = 'none';
+            document.getElementById('slkiModal').classList.remove('active');
         }
 
         function updateSlkiSubkategoriOptions() {
@@ -1946,7 +1931,8 @@
 
         function showSIKIModal(rowIndex) {
             currentSIKIRowIndex = rowIndex;
-            document.getElementById('sikiModal').style.display = 'flex';
+            const modal = document.getElementById('sikiModal');
+            modal.classList.add('active');
             document.getElementById('sikiSearchInput').value = '';
             document.getElementById('sikiKategoriFilter').value = '';
             document.getElementById('sikiSubkategoriFilter').innerHTML = '<option value="">-- Semua Subkategori --</option>';
@@ -1955,7 +1941,7 @@
         }
 
         function closeSIKIModal() {
-            document.getElementById('sikiModal').style.display = 'none';
+            document.getElementById('sikiModal').classList.remove('active');
         }
 
         function updateSikiSubkategoriOptions() {
@@ -2018,6 +2004,13 @@
             }
         }
 
+        // ─── MODAL BACKDROP CLOSE ─────────────────────────────────
+        function closeModalOnBackdrop(event, modalId) {
+            if (event.target.id === modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+        }
+
         // ─── NAV ──────────────────────────────────────────────────
         document.getElementById('navTabs').addEventListener('click', e => {
             const tab = e.target.closest('.nav-tab');
@@ -2047,7 +2040,7 @@
         }
 
         // ─── MAHASISWA ───────────────────────────────────────────
-        window.simpanMahasiswa = async () => {
+        window.simpanMahasiswa = () => {
             State.mahasiswa.nama = document.getElementById('mhsNama').value.trim();
             State.mahasiswa.nim = document.getElementById('mhsNIM').value.trim();
             State.mahasiswa.status = document.getElementById('mhsStatus').value;
@@ -2056,8 +2049,7 @@
                 return;
             }
             saveState();
-            const synced = await syncToSheet('saveMahasiswa', State.mahasiswa);
-            toast(synced ? '✅ Data mahasiswa tersimpan & tersinkron' : 'Data mahasiswa tersimpan (lokal)');
+            toast('✅ Data mahasiswa tersimpan');
             document.querySelector('.nav-tab[data-page="page-demografi"]').click();
         };
 
@@ -2076,13 +2068,12 @@
             document.querySelectorAll('.demografi-input').forEach(inp => inp.value = d[inp.dataset.field] || '');
         }
 
-        window.simpanDemografi = async () => {
+        window.simpanDemografi = () => {
             const d = {};
             document.querySelectorAll('.demografi-input').forEach(inp => d[inp.dataset.field] = inp.value);
             State.demografi[State.weekDemo] = d;
             saveState();
-            const synced = await syncToSheet('saveDemografi', { minggu: State.weekDemo, ...d });
-            toast(synced ? '✅ Demografi disimpan & tersinkron' : 'Demografi disimpan (lokal)');
+            toast('✅ Demografi tersimpan');
             document.querySelector('.nav-tab[data-page="page-instrumen"]').click();
         };
 
@@ -2092,10 +2083,15 @@
                 `<button class="week-btn ${State.weekInst===m?'active':''}" onclick="pilihMingguInst(${m})">Minggu ${m}</button>`
             ).join('');
             document.getElementById('instSubTabs').innerHTML = Object.keys(INSTRUMEN).map(k =>
-                `<button class="btn btn-sm ${activeInst===k?'active':''}" data-inst="${k}" style="margin:2px;">${INSTRUMEN[k].title.split('(')[0].trim()}</button>`
+                `<button class="btn btn-sm ${activeInst===k?'active':''}" data-inst="${k}" style="margin:2px;" onclick="switchInst('${k}')">${INSTRUMEN[k].title.split('(')[0].trim()}</button>`
             ).join('');
             renderActiveInstrumen();
         }
+
+        window.switchInst = (k) => {
+            activeInst = k;
+            renderInstrumen();
+        };
 
         window.pilihMingguInst = (m) => { State.weekInst = m; renderInstrumen(); };
 
@@ -2111,7 +2107,7 @@
                 });
                 html += `</div></div>`;
             });
-            html += `<div class="score-display"><span class="score-number" id="scoreVal">-</span><div class="score-interpretation" id="scoreInterp"></div></div></div>`;
+            html += `<div class="score-display" id="scoreContainer"></div></div>`;
             document.getElementById('instrumenContainer').innerHTML = html;
             hitungSkor();
         }
@@ -2128,19 +2124,31 @@
             const def = INSTRUMEN[activeInst];
             const data = State.instrumen[State.weekInst]?.[activeInst] || {};
             let total = 0;
-            def.items.forEach(it => { if (data[it.id] !== undefined) total += data[it.id]; });
-            document.getElementById('scoreVal').textContent = total;
+            let answered = 0;
+            def.items.forEach(it => {
+                if (data[it.id] !== undefined) {
+                    total += data[it.id];
+                    answered++;
+                }
+            });
+            const container = document.getElementById('scoreContainer');
+            if (!container) return;
+
+            if (answered === 0) {
+                container.innerHTML = '<span class="score-placeholder">Belum ada jawaban yang dipilih</span>';
+                return;
+            }
+
+            if (answered < def.items.length) {
+                container.innerHTML = `<span class="score-number">${total}</span><div class="score-interpretation">Belum lengkap (${answered}/${def.items.length} pertanyaan)</div>`;
+                return;
+            }
+
             const interp = def.interp(total);
-            const el = document.getElementById('scoreInterp');
-            el.textContent = interp.t;
-            el.className = 'score-interpretation ' + interp.c;
+            container.innerHTML = `<span class="score-number">${total}</span><div class="score-interpretation ${interp.c}">${interp.t}</div>`;
         }
 
-        document.getElementById('instSubTabs').addEventListener('click', e => {
-            if (e.target.classList.contains('btn')) { activeInst = e.target.dataset.inst; renderActiveInstrumen(); }
-        });
-
-        window.simpanInstrumen = async () => {
+        window.simpanInstrumen = () => {
             saveState();
             const def = INSTRUMEN[activeInst];
             const items = {};
@@ -2149,8 +2157,7 @@
                 if (val !== undefined) items[it.id] = { pertanyaan: it.q, nilai: val };
             });
             if (Object.keys(items).length === 0) { toast('Belum ada data instrumen yang diisi!'); return; }
-            const synced = await syncToSheet('saveInstrumen', { minggu: State.weekInst, jenis: activeInst, items });
-            toast(synced ? '✅ Instrumen ' + def.title + ' disimpan & tersinkron' : 'Instrumen disimpan (lokal)');
+            toast('✅ Instrumen ' + def.title + ' tersimpan');
         };
 
         // ─── ASUHAN ──────────────────────────────────────────────
@@ -2170,18 +2177,33 @@
             document.getElementById('asuhanImplementasi').value = a.implementasi || '';
             selectedSDKIList = a.sdkiList || [];
             renderSelectedSDKI();
-            renderTabel('analisa', a.analisa || []);
+            renderTabelAnalisa(a.analisa || []);
             renderRencanaTable();
         }
 
-        function renderTabel(jenis, data) {
-            const tbody = document.getElementById(jenis + 'Table').querySelector('tbody');
-            if (jenis === 'analisa') {
-                tbody.innerHTML = data.map((r, i) =>
-                    `<tr><td>${i+1}</td><td contenteditable="true">${r.data||''}</td><td contenteditable="true">${r.masalah||''}</td><td contenteditable="true">${r.etiologi||''}</td><td><button class="remove-btn" onclick="hapusBaris('${jenis}',${i})">×</button></td></tr>`
-                ).join('');
-            }
+        function renderTabelAnalisa(data) {
+            const tbody = document.querySelector('#analisaTable tbody');
+            tbody.innerHTML = data.map((r, i) =>
+                `<tr>
+                    <td>${i+1}</td>
+                    <td contenteditable="true" onblur="updateAnalisaCell(${i}, 'data', this.innerText)">${r.data||''}</td>
+                    <td contenteditable="true" onblur="updateAnalisaCell(${i}, 'masalah', this.innerText)">${r.masalah||''}</td>
+                    <td contenteditable="true" onblur="updateAnalisaCell(${i}, 'etiologi', this.innerText)">${r.etiologi||''}</td>
+                    <td><button class="remove-btn" onclick="hapusBaris('analisa',${i})">×</button></td>
+                </tr>`
+            ).join('');
         }
+
+        window.updateAnalisaCell = (idx, field, value) => {
+            const a = State.asuhan[State.weekAsuhan] || {};
+            const arr = a.analisa || [];
+            if (arr[idx]) {
+                arr[idx][field] = value;
+                a.analisa = arr;
+                State.asuhan[State.weekAsuhan] = a;
+                saveState();
+            }
+        };
 
         function renderRencanaTable() {
             const a = State.asuhan[State.weekAsuhan] || {};
@@ -2195,12 +2217,12 @@
                     `<span class="sdki-chip">${inter.kode} - ${inter.nama} <span class="remove" onclick="removeSIKIFromRow(${i},'${inter.kode}')">×</span></span>`
                 ).join(' ');
                 return `<tr>
-                    <td contenteditable="true">${r.diagnosis||''}</td>
+                    <td contenteditable="true" onblur="updateRencanaCell(${i}, 'diagnosis', this.innerText)">${r.diagnosis||''}</td>
                     <td>
                         <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:4px;">
                             ${slkiChips}
                         </div>
-                        <button class="btn btn-sm btn-outline" onclick="showSLKIModal(${i})" style="font-size:0.7rem;">+ Pilih Luaran SLKI</button>
+                        <button class="btn btn-sm btn-outline no-print" onclick="showSLKIModal(${i})" style="font-size:0.7rem;">+ Pilih Luaran SLKI</button>
                         <br>
                         <textarea class="form-textarea" style="margin-top:6px; min-height:40px;" placeholder="Tujuan/Kriteria tambahan..." onchange="updateRencanaTujuan(${i}, this.value)">${r.tujuan||''}</textarea>
                     </td>
@@ -2208,13 +2230,24 @@
                         <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:4px;">
                             ${intervensiChips}
                         </div>
-                        <button class="btn btn-sm btn-outline" onclick="showSIKIModal(${i})" style="font-size:0.7rem;">+ Pilih Intervensi SIKI</button>
+                        <button class="btn btn-sm btn-outline no-print" onclick="showSIKIModal(${i})" style="font-size:0.7rem;">+ Pilih Intervensi SIKI</button>
                     </td>
-                    <td contenteditable="true">${r.rasional||''}</td>
+                    <td contenteditable="true" onblur="updateRencanaCell(${i}, 'rasional', this.innerText)">${r.rasional||''}</td>
                     <td><button class="remove-btn" onclick="hapusBaris('rencana',${i})">×</button></td>
                 </tr>`;
             }).join('');
         }
+
+        window.updateRencanaCell = (idx, field, value) => {
+            const a = State.asuhan[State.weekAsuhan] || {};
+            const rencana = a.rencana || [];
+            if (rencana[idx]) {
+                rencana[idx][field] = value;
+                a.rencana = rencana;
+                State.asuhan[State.weekAsuhan] = a;
+                saveState();
+            }
+        };
 
         window.updateRencanaTujuan = (idx, val) => {
             const a = State.asuhan[State.weekAsuhan] || {};
@@ -2234,35 +2267,51 @@
             else if (jenis === 'rencana') arr.push({ diagnosis: '', tujuan: '', slki: [], intervensi: [], rasional: '' });
             a[jenis] = arr;
             State.asuhan[State.weekAsuhan] = a;
+            saveState();
             if (jenis === 'rencana') renderRencanaTable();
-            else renderTabel(jenis, arr);
+            else renderTabelAnalisa(arr);
         };
 
         window.hapusBaris = (jenis, idx) => {
-            const arr = State.asuhan[State.weekAsuhan]?.[jenis] || [];
+            const a = State.asuhan[State.weekAsuhan] || {};
+            const arr = a[jenis] || [];
             arr.splice(idx, 1);
+            a[jenis] = arr;
+            State.asuhan[State.weekAsuhan] = a;
+            saveState();
             if (jenis === 'rencana') renderRencanaTable();
-            else renderTabel(jenis, arr);
+            else renderTabelAnalisa(arr);
         };
 
-        window.simpanAsuhan = async () => {
+        window.simpanAsuhan = () => {
             const a = State.asuhan[State.weekAsuhan] || {};
             a.fisik = document.getElementById('asuhanFisik').value;
             a.diagnosis = document.getElementById('asuhanDiagnosis').value;
             a.sdkiList = selectedSDKIList;
             a.implementasi = document.getElementById('asuhanImplementasi').value;
-            const rows = document.querySelectorAll('#rencanaTable tbody tr');
+
+            const analisaRows = document.querySelectorAll('#analisaTable tbody tr');
+            const analisa = a.analisa || [];
+            analisaRows.forEach((row, i) => {
+                if (!analisa[i]) analisa[i] = { data: '', masalah: '', etiologi: '' };
+                analisa[i].data = row.children[1]?.innerText || '';
+                analisa[i].masalah = row.children[2]?.innerText || '';
+                analisa[i].etiologi = row.children[3]?.innerText || '';
+            });
+            a.analisa = analisa;
+
+            const rencanaRows = document.querySelectorAll('#rencanaTable tbody tr');
             const rencana = a.rencana || [];
-            rows.forEach((row, i) => {
-                if (!rencana[i]) rencana[i] = {};
+            rencanaRows.forEach((row, i) => {
+                if (!rencana[i]) rencana[i] = { diagnosis: '', tujuan: '', slki: [], intervensi: [], rasional: '' };
                 rencana[i].diagnosis = row.children[0]?.innerText || '';
                 rencana[i].rasional = row.children[3]?.innerText || '';
             });
             a.rencana = rencana;
+
             State.asuhan[State.weekAsuhan] = a;
             saveState();
-            const synced = await syncToSheet('saveAsuhan', { minggu: State.weekAsuhan, ...a });
-            toast(synced ? '✅ Asuhan disimpan & tersinkron' : 'Asuhan disimpan (lokal)');
+            toast('✅ Asuhan tersimpan');
         };
 
         // ─── SDKI ────────────────────────────────────────────────
@@ -2287,11 +2336,7 @@
             if (sub) filtered = filtered.filter(d => d.subkategori === sub);
             if (query) filtered = filtered.filter(d => d.nama.toLowerCase().includes(query) || d.kode.toLowerCase().includes(query));
 
-            if (filtered.length === 0) {
-                resultsDiv.style.display = 'none';
-                return;
-            }
-            if (!kat && !sub && !query) {
+            if (filtered.length === 0 || (!kat && !sub && !query)) {
                 resultsDiv.style.display = 'none';
                 return;
             }
@@ -2349,7 +2394,12 @@
                         let total = 0;
                         INSTRUMEN[k].items.forEach(it => { if (inst[k][it.id] !== undefined) total += inst[k][it.id]; });
                         html += `<li>${INSTRUMEN[k].title}: ${total} (${INSTRUMEN[k].interp(total).t})</li>`;
-                    } else if (inst[k]) html += `<li>${INSTRUMEN[k].title}: belum lengkap</li>`;
+                    } else if (inst[k]) {
+                        let total = 0;
+                        let answered = 0;
+                        INSTRUMEN[k].items.forEach(it => { if (inst[k][it.id] !== undefined) { total += inst[k][it.id]; answered++; } });
+                        html += `<li>${INSTRUMEN[k].title}: ${total} — Belum lengkap (${answered}/${INSTRUMEN[k].items.length})</li>`;
+                    }
                 }
                 html += `</ul>`;
 
@@ -2369,7 +2419,7 @@
                     as.rencana.forEach((r, i) => {
                         const slkiList = (r.slki || []).map(s => `${s.kode} ${s.nama} (${s.ekspektasi})`).join(', ');
                         const interList = (r.intervensi || []).map(inter => `${inter.kode} ${inter.nama}`).join(', ');
-                        html += `${i+1}. Diagnosis: ${r.diagnosis||'-'} | Tujuan: ${r.tujuan||'-'} | SLKI: ${slkiList} | Intervensi: ${interList} | Rasional: ${r.rasional||'-'}<br>`;
+                        html += `${i+1}. Diagnosis: ${r.diagnosis||'-'} | Tujuan: ${r.tujuan||'-'} | SLKI: ${slkiList||'-'} | Intervensi: ${interList||'-'} | Rasional: ${r.rasional||'-'}<br>`;
                     });
                 } else html += 'Belum ada data.<br>';
                 html += `</div>`;
@@ -2378,29 +2428,114 @@
             document.getElementById('reviewContent').innerHTML = html;
         }
 
+        // ─── PRINT ───────────────────────────────────────────────
+        window.preparePrint = () => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('print-visible'));
+            document.getElementById('page-demografi').classList.add('print-visible');
+            document.getElementById('page-instrumen').classList.add('print-visible');
+            document.getElementById('page-asuhan').classList.add('print-visible');
+            document.getElementById('page-review').classList.add('print-visible');
+            window.print();
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('print-visible'));
+            }, 1000);
+        };
+
+        
+        // ─── RINGKASAN INSTRUMEN UNTUK SPREADSHEET ───────────────
+        function getInstrumenSummary(minggu) {
+            const summary = {};
+            for (let key in INSTRUMEN) {
+                const def = INSTRUMEN[key];
+                const data = State.instrumen[minggu]?.[key] || {};
+                let total = 0, answered = 0;
+                def.items.forEach(it => {
+                    if (data[it.id] !== undefined) { total += data[it.id]; answered++; }
+                });
+                if (answered === def.items.length) {
+                    const interp = def.interp(total);
+                    summary[key] = total + ' (' + interp.t + ')';
+                } else if (answered > 0) {
+                    summary[key] = total + ' (Belum lengkap: ' + answered + '/' + def.items.length + ')';
+                } else {
+                    summary[key] = 'Belum diisi';
+                }
+            }
+            return summary;
+        }
+
         // ─── SYNC SPREADSHEET ──────────────────────────────────
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzgViTJbB0xzZdr1M3D1QKIFouXcGylUcwL6apknai-oc3SHdV291UjcI3asShgH85o/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwKzZnHbRQaxpU3kWbrYbRVXCvkN3_-Kcijv1Yi5oOABmfWynJNSR7INTWIXfwVJQ0/exec';
         let isLoadingFromSheet = false;
         let pendingSyncs = [];
 
         async function syncToSheet(action, payload) {
             try {
+                const formData = new FormData();
+                formData.append('action', action);
+                formData.append('payload', JSON.stringify(payload));
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, ...payload })
+                    body: formData
                 });
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const result = await response.json();
-                if (result.status === 'success') { console.log('✅ Sync berhasil:', result.message); return true; } else {
+                if (result.status === 'success') {
+                    console.log('✅ Sync berhasil:', result.message);
+                    // Coba proses pending syncs
+                    processPendingSyncs();
+                    return true;
+                } else {
                     console.warn('⚠️ Sync warning:', result.message);
                     return false;
                 }
             } catch (err) {
                 console.error('❌ Sync error:', err);
-                pendingSyncs.push({ action, payload });
+                pendingSyncs.push({ action, payload, timestamp: Date.now() });
+                savePendingSyncs();
                 return false;
+            }
+        }
+
+        function savePendingSyncs() {
+            try {
+                localStorage.setItem('geroApp_pending', JSON.stringify(pendingSyncs));
+            } catch (e) {}
+        }
+
+        function loadPendingSyncs() {
+            try {
+                const data = JSON.parse(localStorage.getItem('geroApp_pending'));
+                if (Array.isArray(data)) pendingSyncs = data;
+            } catch (e) {}
+        }
+
+        async function processPendingSyncs() {
+            if (pendingSyncs.length === 0) return;
+            const queue = [...pendingSyncs];
+            pendingSyncs = [];
+            savePendingSyncs();
+            let successCount = 0;
+            for (const item of queue) {
+                try {
+                    const fd = new FormData();
+                        fd.append('action', item.action);
+                        fd.append('payload', JSON.stringify(item.payload));
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            mode: 'cors',
+                            body: fd
+                        });
+                    if (response.ok) successCount++;
+                    else pendingSyncs.push(item);
+                } catch (e) {
+                    pendingSyncs.push(item);
+                }
+            }
+            savePendingSyncs();
+            if (successCount > 0) {
+                console.log(`✅ ${successCount} pending sync berhasil dikirim`);
             }
         }
 
@@ -2408,11 +2543,23 @@
             if (isLoadingFromSheet) return;
             isLoadingFromSheet = true;
             try {
-                const response = await fetch(API_URL + '?action=getData', { method: 'GET', mode: 'cors' });
+                const response = await fetch(API_URL + '?action=getData&ts=' + Date.now(), { method: 'GET', mode: 'cors' });
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const result = await response.json();
                 if (result.status === 'success' && result.data) {
                     const data = result.data;
+                    const localTime = State.lastSaved || 0;
+                    const serverTime = data.lastSaved || 0;
+
+                    // Jika data lokal lebih baru, tanyakan user
+                    if (localTime > serverTime && localTime > 0) {
+                        const useServer = confirm('Data di server lebih lama dari data lokal. Apakah Anda ingin menimpa data lokal dengan data dari server? Klik OK untuk ya, Cancel untuk mempertahankan data lokal.');
+                        if (!useServer) {
+                            toast('✅ Data lokal dipertahankan');
+                            return;
+                        }
+                    }
+
                     if (data.mahasiswa && data.mahasiswa.nama) {
                         State.mahasiswa = data.mahasiswa;
                         document.getElementById('mhsNama').value = State.mahasiswa.nama || '';
@@ -2431,39 +2578,126 @@
                     }
                     toast('✅ Data berhasil dimuat dari spreadsheet');
                 }
-            } catch (err) { console.log('Load dari sheet gagal, menggunakan data lokal:', err); } finally { isLoadingFromSheet = false; }
+            } catch (err) {
+                console.log('Load dari sheet gagal, menggunakan data lokal:', err);
+            } finally {
+                isLoadingFromSheet = false;
+            }
         }
 
         // ─── SYNC FINAL ──────────────────────────────────────────
         window.syncFinal = async () => {
-            toast('🔄 Menyinkronkan semua data...');
+            if (!State.mahasiswa.nama) {
+                toast('❌ Data mahasiswa belum lengkap!');
+                return;
+            }
+            toast('🔄 Mengirim data ke Dosen...');
+            await processPendingSyncs();
+
             let syncCount = 0;
-            if (State.mahasiswa.nama) { if (await syncToSheet('saveMahasiswa', State.mahasiswa)) syncCount++; }
+
+            // 1. Kirim Mahasiswa
+            if (await syncToSheet('saveMahasiswa', State.mahasiswa)) syncCount++;
+
+            // 2. Kirim Demografi + Instrumen (per minggu, 1 baris per minggu)
             for (let m = 1; m <= 2; m++) {
                 const d = State.demografi[m];
-                if (d && d.namaLansia) { if (await syncToSheet('saveDemografi', { minggu: m, ...d })) syncCount++; }
-            }
-            for (let m = 1; m <= 2; m++) {
-                const instData = State.instrumen[m] || {};
-                for (let jenis in instData) {
-                    const items = {};
-                    const def = INSTRUMEN[jenis];
-                    if (!def) continue;
-                    def.items.forEach(it => { const val = instData[jenis][it.id]; if (val !== undefined) items[it.id] = { pertanyaan: it.q, nilai: val }; });
-                    if (Object.keys(items).length > 0) { if (await syncToSheet('saveInstrumen', { minggu: m, jenis, items })) syncCount++; }
+                if (d && d.namaLansia) {
+                    const summary = getInstrumenSummary(m);
+                    if (await syncToSheet('saveDemografiInstrumen', {
+                        nama: State.mahasiswa.nama,
+                        nim: State.mahasiswa.nim,
+                        minggu: m,
+                        namaLansia: d.namaLansia || '',
+                        usia: d.usia || '',
+                        jenisKelamin: d.jenisKelamin || '',
+                        statusKawin: d.statusKawin || '',
+                        pendidikan: d.pendidikan || '',
+                        pekerjaan: d.pekerjaan || '',
+                        lamaTinggal: d.lamaTinggal || '',
+                        tempatTinggal: d.tempatTinggal || '',
+                        riwayatPenyakit: d.riwayatPenyakit || '',
+                        obatObatan: d.obatObatan || '',
+                        ...summary
+                    })) syncCount++;
                 }
             }
+
+            // 3. Kirim Asuhan Keperawatan (per minggu)
             for (let m = 1; m <= 2; m++) {
                 const a = State.asuhan[m];
-                if (a && (a.fisik || a.diagnosis || a.implementasi)) { if (await syncToSheet('saveAsuhan', { minggu: m, ...a })) syncCount++; }
+                if (a && (a.fisik || a.diagnosis || a.implementasi || (a.analisa && a.analisa.length) || (a.rencana && a.rencana.length))) {
+                    if (await syncToSheet('saveAsuhan', {
+                        nama: State.mahasiswa.nama,
+                        nim: State.mahasiswa.nim,
+                        minggu: m,
+                        fisik: a.fisik || '',
+                        diagnosis: a.diagnosis || '',
+                        implementasi: a.implementasi || '',
+                        analisa: JSON.stringify(a.analisa || []),
+                        rencana: JSON.stringify(a.rencana || [])
+                    })) syncCount++;
+                }
             }
-            toast('✅ Sinkronisasi selesai! ' + syncCount + ' data berhasil dikirim.');
+
+            if (syncCount > 0) {
+                toast('✅ Data berhasil dikirim! ' + syncCount + ' baris tersimpan.');
+                // Hapus semua data lokal dan reset aplikasi
+                setTimeout(() => {
+                    localStorage.removeItem('geroApp');
+                    localStorage.removeItem('geroApp_pending');
+                    // Reset state
+                    State.mahasiswa = { nama: '', nim: '', status: '' };
+                    State.demografi = { 1: {}, 2: {} };
+                    State.instrumen = { 1: {}, 2: {} };
+                    State.asuhan = { 1: {}, 2: {} };
+                    State.weekDemo = 1; State.weekInst = 1; State.weekAsuhan = 1;
+                    selectedSDKIList = [];
+                    // Reset form
+                    document.getElementById('mhsNama').value = '';
+                    document.getElementById('mhsNIM').value = '';
+                    document.getElementById('mhsStatus').value = '';
+                    document.querySelectorAll('.demografi-input').forEach(i => i.value = '');
+                    document.getElementById('asuhanFisik').value = '';
+                    document.getElementById('asuhanDiagnosis').value = '';
+                    document.getElementById('asuhanImplementasi').value = '';
+                    document.getElementById('selectedDiagnoses').innerHTML = '';
+                    document.querySelector('#analisaTable tbody').innerHTML = '';
+                    document.querySelector('#rencanaTable tbody').innerHTML = '';
+                    // Kembali ke cover
+                    document.getElementById('appContainer').style.display = 'none';
+                    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                    document.getElementById('page-welcome').classList.add('active');
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelector('.nav-tab[data-page="page-welcome"]').classList.add('active');
+                    document.getElementById('coverScreen').classList.remove('hidden');
+                    toast('🔄 Aplikasi direset. Silakan mulai dari awal.');
+                }, 1500);
+            } else {
+                toast('⚠️ Tidak ada data yang terkirim. Pastikan semua data telah diisi.');
+            }
         };
 
         // ─── INIT ──────────────────────────────────────────────────
+        loadPendingSyncs();
         loadState();
+
+        // Isi form mahasiswa jika ada data
+        if (State.mahasiswa.nama) {
+            document.getElementById('mhsNama').value = State.mahasiswa.nama;
+            document.getElementById('mhsNIM').value = State.mahasiswa.nim;
+            document.getElementById('mhsStatus').value = State.mahasiswa.status;
+        }
+
         setTimeout(() => { updateSubkategoriOptions(); }, 100);
-        setTimeout(() => { loadFromSheet(); }, 2000);
+        // Delay load dari sheet agar tidak overwrite data lokal yang baru saja dimuat
+        setTimeout(() => {
+            // Hanya load dari sheet jika data lokal kosong atau sangat lama (> 5 menit)
+            const localAge = Date.now() - (State.lastSaved || 0);
+            if (!State.mahasiswa.nama || localAge > 300000) {
+                loadFromSheet();
+            }
+        }, 3000);
     </script>
 </body>
 </html>
