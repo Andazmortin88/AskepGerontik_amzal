@@ -1166,7 +1166,7 @@
             <div class="section-title-row">
                 <div>
                     <div class="card-title">📥 Import Akun Mahasiswa — Excel / CSV</div>
-                    <div class="text-muted" style="font-size:.72rem;line-height:1.5;">Gunakan template agar kolom terbaca otomatis. Password awal setiap mahasiswa tetap menggunakan NIM.</div>
+                    <div class="text-muted" style="font-size:.72rem;line-height:1.5;">Gunakan template agar kolom terbaca otomatis. V6.4 mengirim seluruh akun dalam satu proses sehingga jauh lebih cepat. Password awal setiap mahasiswa tetap menggunakan NIM.</div>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button class="btn btn-sm btn-outline" type="button" onclick="downloadStudentTemplateXlsx()">⬇️ Template Excel</button>
@@ -1175,7 +1175,7 @@
             </div>
             <div style="background:#f7fbff;border:1px solid #d7e8f8;border-radius:14px;padding:14px;margin-bottom:14px;font-size:.76rem;line-height:1.6;">
                 <strong>Kolom wajib:</strong> Nama Lengkap, NIM, Program, Kelas / Kelompok.<br>
-                <strong>Program yang disarankan:</strong> D3 Keperawatan atau Profesi Ners.
+                <strong>Program yang disarankan:</strong> D3 Keperawatan atau Profesi Ners.<br><strong>Penting:</strong> jangan menghapus atau mengedit kolom userId, passwordHash, dan role langsung di Spreadsheet.
             </div>
             <div class="grid-2">
                 <div class="form-group">
@@ -3521,8 +3521,45 @@
         function validateImportRows(rows){const valid=[],errors=[],seen=new Set();rows.forEach((r,i)=>{const row=mapImportRow(r),rowNo=i+2;if(!row.nama&&!row.nim&&!row.program&&!row.kelas)return;if(!row.nama){errors.push(`Baris ${rowNo}: Nama Lengkap kosong.`);return;}if(!row.nim){errors.push(`Baris ${rowNo}: NIM kosong.`);return;}if(!row.program){errors.push(`Baris ${rowNo}: Program kosong.`);return;}if(!row.kelas){errors.push(`Baris ${rowNo}: Kelas / Kelompok kosong.`);return;}if(seen.has(row.nim)){errors.push(`Baris ${rowNo}: NIM ${row.nim} duplikat di file.`);return;}seen.add(row.nim);valid.push(row);});return{valid,errors};}
         async function fileToRows(file){if(!file)return[];const ext=(file.name.split('.').pop()||'').toLowerCase();if(window.XLSX){const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:false});const ws=wb.Sheets[wb.SheetNames[0]];return XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});}if(ext==='csv'){const txt=await file.text();const lines=txt.split(/\r?\n/).filter(x=>x.trim());if(!lines.length)return[];const parseLine=line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;}else if((c===','||c===';')&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out;};const h=parseLine(lines[0]);return lines.slice(1).map(line=>{const a=parseLine(line),o={};h.forEach((k,i)=>o[k]=a[i]??'');return o;});}throw new Error('Pembaca Excel belum tersedia. Pastikan internet aktif atau gunakan file CSV.');}
         window.previewStudentImport=async(file)=>{const status=document.getElementById('studentImportStatus'),box=document.getElementById('studentImportPreview'),btn=document.getElementById('studentImportButton');StudentImportRows=[];btn.disabled=true;box.style.display='none';box.innerHTML='';if(!file){status.textContent='';return;}status.style.color='var(--text-muted)';status.textContent='⏳ Membaca file...';try{const raw=await fileToRows(file),checked=validateImportRows(raw);StudentImportRows=checked.valid;if(!StudentImportRows.length)throw new Error(checked.errors[0]||'Tidak ada baris mahasiswa yang valid. Pastikan header sesuai template.');const preview=StudentImportRows.slice(0,10).map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r.nama)}</td><td>${escapeHtml(r.nim)}</td><td>${escapeHtml(r.program)}</td><td>${escapeHtml(r.kelas)}</td><td>${AdminStudentNimSet.has(r.nim)?'Sudah ada':'Baru'}</td></tr>`).join('');box.innerHTML=`<table class="admin-table"><thead><tr><th>No</th><th>Nama Lengkap</th><th>NIM</th><th>Program</th><th>Kelas</th><th>Keterangan</th></tr></thead><tbody>${preview}</tbody></table>${StudentImportRows.length>10?`<div class="text-muted" style="padding:9px;font-size:.72rem;">Preview 10 dari ${StudentImportRows.length} baris.</div>`:''}`;box.style.display='block';btn.disabled=false;status.style.color=checked.errors.length?'#9a6a00':'var(--success)';status.textContent=`✅ ${StudentImportRows.length} baris valid ditemukan.${checked.errors.length?` ${checked.errors.length} baris dilewati karena bermasalah.`:''}`;if(checked.errors.length)console.warn('Kesalahan import:',checked.errors);}catch(e){status.style.color='var(--danger)';status.textContent='❌ '+e.message;}};
-        async function importWithConcurrency(rows,limit,onProgress,allowUpdate=false){let idx=0,done=0,success=0,failed=[];async function worker(){while(true){const i=idx++;if(i>=rows.length)return;const r=rows[i];try{const res=await apiPostFinal('adminCreateStudent',{...r,allowUpdate});if(res.status!=='success')throw new Error(res.message||'Gagal');success++;}catch(e){failed.push({row:r,error:e.message});}done++;if(onProgress)onProgress(done,rows.length,success,failed.length);}}await Promise.all(Array.from({length:Math.min(limit,rows.length)},()=>worker()));return{success,failed};}
-        window.importStudentAccounts=async()=>{if(!StudentImportRows.length)return;const update=document.getElementById('bulkUpdateExisting').checked;let rows=StudentImportRows;const existing=rows.filter(r=>AdminStudentNimSet.has(r.nim));if(!update)rows=rows.filter(r=>!AdminStudentNimSet.has(r.nim));if(!rows.length){toast(existing.length?'ℹ️ Semua NIM pada file sudah terdaftar. Centang opsi perbarui jika memang ingin mengubah data.':'Tidak ada data untuk diimport.');return;}if(update&&existing.length&&!confirm(`${existing.length} NIM sudah terdaftar. Data akun tersebut akan diperbarui dan password direset menjadi NIM. Lanjutkan?`))return;const btn=document.getElementById('studentImportButton'),status=document.getElementById('studentImportStatus');btn.disabled=true;status.style.color='var(--text-muted)';status.textContent=`⏳ Mengimport 0/${rows.length} akun...`;const result=await importWithConcurrency(rows,3,(done,total,success,failed)=>{status.textContent=`⏳ Mengimport ${done}/${total} akun — berhasil ${success}, gagal ${failed}`;},update);btn.disabled=false;if(result.failed.length){status.style.color='#9a6a00';status.textContent=`⚠️ Import selesai: ${result.success} berhasil, ${result.failed.length} gagal. Lihat console untuk detail.`;console.warn('Import gagal:',result.failed);}else{status.style.color='var(--success)';status.textContent=`✅ ${result.success} akun mahasiswa berhasil diimport.`;}await loadAdminDashboard();};
+        async function importWithConcurrency(rows,limit,onProgress,allowUpdate=false){
+            // V6.4: kompatibilitas nama fungsi lama, tetapi sekarang hanya 1 request bulk.
+            const res=await apiPostFinal('adminBulkImportStudents',{rows,allowUpdate});
+            if(res.status!=='success') throw new Error(res.message||'Import bulk gagal');
+            if(onProgress) onProgress(rows.length,rows.length,(res.created||0)+(res.updated||0),(res.errors||[]).length);
+            return {success:(res.created||0)+(res.updated||0),failed:(res.errors||[]).map(error=>({error})),created:res.created||0,updated:res.updated||0,skipped:res.skipped||0};
+        }
+        window.importStudentAccounts=async()=>{
+            if(!StudentImportRows.length)return;
+            const update=document.getElementById('bulkUpdateExisting').checked;
+            let rows=StudentImportRows;
+            const existing=rows.filter(r=>AdminStudentNimSet.has(r.nim));
+            if(!update) rows=rows.filter(r=>!AdminStudentNimSet.has(r.nim));
+            if(!rows.length){
+                toast(existing.length?'ℹ️ Semua NIM pada file sudah terdaftar. Centang opsi perbarui jika memang ingin mengubah data.':'Tidak ada data untuk diimport.');
+                return;
+            }
+            if(update&&existing.length&&!confirm(`${existing.length} NIM sudah terdaftar. Data akun tersebut akan diperbarui, role dipastikan STUDENT, dan password direset menjadi NIM. Lanjutkan?`))return;
+
+            const btn=document.getElementById('studentImportButton'),status=document.getElementById('studentImportStatus');
+            btn.disabled=true;
+            status.style.color='var(--text-muted)';
+            status.textContent=`⏳ Mengimport ${rows.length} akun dalam satu proses...`;
+
+            try{
+                const res=await apiPostFinal('adminBulkImportStudents',{rows,allowUpdate:update});
+                if(res.status!=='success')throw new Error(res.message||'Import gagal');
+                const errs=res.errors||[];
+                status.style.color=errs.length?'#9a6a00':'var(--success)';
+                status.textContent=`✅ Import selesai: ${res.created||0} akun baru, ${res.updated||0} diperbarui, ${res.skipped||0} dilewati${errs.length?`, ${errs.length} bermasalah`:''}.`;
+                if(errs.length)console.warn('Kesalahan import bulk:',errs);
+                await loadAdminDashboard();
+            }catch(e){
+                status.style.color='var(--danger)';
+                status.textContent='❌ '+e.message;
+            }finally{
+                btn.disabled=false;
+            }
+        };
         window.clearStudentImport=()=>{StudentImportRows=[];const f=document.getElementById('studentImportFile');if(f)f.value='';document.getElementById('studentImportPreview').style.display='none';document.getElementById('studentImportPreview').innerHTML='';document.getElementById('studentImportStatus').textContent='';document.getElementById('studentImportButton').disabled=true;};
         window.downloadStudentTemplateCsv=()=>{const csv='Nama Lengkap,NIM,Program,Kelas / Kelompok\nAhmad Fauzan,202601001,Profesi Ners,Ners A\nSiti Rahma,202601002,D3 Keperawatan,D3 3A\n';const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Template_Akun_Mahasiswa_Askep_Gerontik.csv';document.body.appendChild(a);a.click();const u=a.href;a.remove();setTimeout(()=>URL.revokeObjectURL(u),500);};
         window.downloadStudentTemplateXlsx=()=>{if(!window.XLSX){toast('❌ Modul Excel belum termuat. Gunakan template CSV atau cek koneksi internet.');return;}const data=[['Nama Lengkap','NIM','Program','Kelas / Kelompok'],['Ahmad Fauzan','202601001','Profesi Ners','Ners A'],['Siti Rahma','202601002','D3 Keperawatan','D3 3A']],wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:28},{wch:18},{wch:20},{wch:20}];XLSX.utils.book_append_sheet(wb,ws,'Akun Mahasiswa');const pet=XLSX.utils.aoa_to_sheet([['PETUNJUK TEMPLATE AKUN MAHASISWA'],['1. Jangan mengubah judul kolom pada baris pertama.'],['2. Isi satu mahasiswa per baris.'],['3. Program: D3 Keperawatan atau Profesi Ners.'],['4. Username otomatis = Nama Lengkap.'],['5. Password awal otomatis = NIM.'],['6. Hapus dua baris contoh sebelum upload data sebenarnya.']]);pet['!cols']=[{wch:70}];XLSX.utils.book_append_sheet(wb,pet,'Petunjuk');XLSX.writeFile(wb,'Template_Akun_Mahasiswa_Askep_Gerontik.xlsx');};
