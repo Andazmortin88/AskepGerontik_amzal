@@ -2369,8 +2369,6 @@
             saveState();
             toast('✅ Data mahasiswa tersimpan');
             document.querySelector('.nav-tab[data-page="page-demografi"]').click();
-            // Data server hanya dibaca berdasarkan NIM yang sedang aktif, mencegah data mahasiswa lain tertarik ke perangkat ini.
-            loadFromSheet(State.mahasiswa.nim);
         };
 
         // ─── DEMOGRAFI ──────────────────────────────────────────
@@ -3181,18 +3179,10 @@
         }
 
         setTimeout(() => { updateSubkategoriOptions(); }, 100);
-        // Delay load dari sheet agar tidak overwrite data lokal yang baru saja dimuat
-        setTimeout(() => {
-            // Hanya load dari sheet jika data lokal kosong atau sangat lama (> 5 menit)
-            const localAge = Date.now() - (State.lastSaved || 0);
-            if (State.mahasiswa.nim && localAge > 300000) {
-                loadFromSheet(State.mahasiswa.nim);
-            }
-        }, 3000);
 
 
         // ═══════════════════════════════════════════════════════════
-        // FINAL V6 — AUTH, CLOUD DRAFT, PROGRESS, PEER REMINDER, ADMIN
+        // SUPABASE V1.1 FAST — AUTH, CLOUD DRAFT, PROGRESS, PEER REMINDER, ADMIN
         // ═══════════════════════════════════════════════════════════
         const AppSession = { token:'', role:'', user:null, isFinal:false, lastServerSaved:0 };
         let loginMode = 'student';
@@ -3201,7 +3191,7 @@
         let suppressCloudSave = true;
 
         function apiConfigured() {
-            return API_URL && API_URL.startsWith('https://script.google.com/macros/s/') && API_URL.endsWith('/exec');
+            return API_URL && API_URL.startsWith('https://rnvmaihjaxpvsgnaczod.supabase.co/functions/v1/askep-gerontik-api');
         }
         async function apiPostFinal(action, payload={}) {
             if (!apiConfigured()) throw new Error('API_URL belum diisi. Ikuti langkah sinkronisasi setelah file dibuat.');
@@ -3264,34 +3254,17 @@
             AppSession.token=r.token; AppSession.role='STUDENT'; AppSession.user=r.user; AppSession.isFinal=!!r.isFinal;
             sessionStorage.setItem('askepFinalSession', JSON.stringify({token:r.token,role:'STUDENT',user:r.user,isFinal:AppSession.isFinal}));
 
+            // FAST LOGIN: tampilkan data lokal/dashboard lebih dulu, sinkronisasi cloud berjalan sesudahnya.
             resetStateForStudent(r.user);
-
             const local = loadStudentLocal(r.user);
-            let serverState = null;
-            try {
-                const d = await apiPostFinal('loadDraft', {});
-                if (d.status==='success') {
-                    const candidate=d.state || null;
-                    if (!candidate || stateBelongsToUser(candidate,r.user)) serverState=candidate;
-                    else console.error('Draft server ditolak: owner tidak cocok dengan akun login.');
-                    AppSession.isFinal = !!d.isFinal;
-                    AppSession.lastServerSaved = Number(d.lastSaved||0);
-                } else if (d.message) {
-                    console.warn('Draft server tidak dimuat:', d.message);
-                }
-            } catch(e) { console.warn(e); }
-
             const safeLocal = local && stateBelongsToUser(local,r.user) ? local : null;
-            const localTs = Number(safeLocal?.lastSaved||0);
-            if (serverState && Number(serverState.lastSaved||0) >= localTs) applyStudentState(serverState,r.user);
-            else if (safeLocal) applyStudentState(safeLocal,r.user);
-            else resetStateForStudent(r.user);
+            const initialLocalTs = Number(safeLocal?.lastSaved||0);
+            if (safeLocal) applyStudentState(safeLocal,r.user);
 
             State.ownerUserId = r.user.userId || '';
             State.mahasiswa = {nama:r.user.nama,nim:r.user.nim,status:r.user.program || ''};
             State.instrumentSchemaVersion = 6;
             suppressCloudSave = false;
-            saveStateFinalLocalOnly();
 
             document.getElementById('mhsNama').value=State.mahasiswa.nama;
             document.getElementById('mhsNIM').value=State.mahasiswa.nim;
@@ -3301,14 +3274,46 @@
             document.getElementById('appContainer').style.display='block';
             document.getElementById('readonlyBanner').style.display = AppSession.isFinal ? 'block':'none';
             document.getElementById('dashboardPrintBtn').style.display = AppSession.isFinal ? 'inline-flex':'none';
-            setCloudStatus('ok', AppSession.isFinal ? '✅ Data FINAL' : '☁️ Draft tersambung');
+            setCloudStatus('busy', AppSession.isFinal ? '⏳ Memuat data FINAL...' : '☁️ Menyinkronkan draft...');
             goToPage('page-welcome');
             renderStudentDashboard();
-            refreshClassProgress();
-            loadReminders();
             renderDemografi(); renderInstrumen(); renderAsuhan();
             installAutosaveListeners();
             if (AppSession.isFinal) enableReadOnlyMode();
+
+            // Sinkronisasi server tidak menghalangi tampilan dashboard/login.
+            setTimeout(async()=>{
+                try {
+                    const d = await apiPostFinal('loadDraft', {});
+                    if (d.status==='success') {
+                        const candidate=d.state || null;
+                        if (candidate && stateBelongsToUser(candidate,r.user)) {
+                            const serverTs=Number(d.lastSaved||candidate.lastSaved||0);
+                            if (!safeLocal || serverTs >= initialLocalTs) applyStudentState(candidate,r.user);
+                        }
+                        AppSession.isFinal = !!d.isFinal;
+                        AppSession.lastServerSaved = Number(d.lastSaved||0);
+                        State.ownerUserId = r.user.userId || '';
+                        State.mahasiswa = {nama:r.user.nama,nim:r.user.nim,status:r.user.program || ''};
+                        State.instrumentSchemaVersion = 6;
+                        saveStateFinalLocalOnly();
+                        document.getElementById('readonlyBanner').style.display = AppSession.isFinal ? 'block':'none';
+                        document.getElementById('dashboardPrintBtn').style.display = AppSession.isFinal ? 'inline-flex':'none';
+                        renderStudentDashboard(false); renderDemografi(); renderInstrumen(); renderAsuhan();
+                        if (AppSession.isFinal) enableReadOnlyMode();
+                        setCloudStatus('ok', AppSession.isFinal ? '✅ Data FINAL' : '✅ Draft tersambung');
+                    } else if (d.message) {
+                        setCloudStatus('error','⚠️ Draft cloud belum termuat');
+                        console.warn('Draft server tidak dimuat:', d.message);
+                    }
+                } catch(e) {
+                    setCloudStatus('error','⚠️ Mode lokal — cloud akan dicoba lagi');
+                    console.warn('Sinkronisasi draft setelah login gagal:', e);
+                }
+                // Fitur sekunder dimuat setelah dashboard tampil.
+                refreshClassProgress();
+                loadReminders();
+            }, 0);
         }
 
         function resetStateForStudent(user) {
@@ -3389,7 +3394,7 @@
         function scheduleCloudSave() {
             clearTimeout(cloudSaveTimer);
             setCloudStatus('busy','⏳ Perubahan belum tersimpan...');
-            cloudSaveTimer=setTimeout(()=>saveDraftNow(false), 1600);
+            cloudSaveTimer=setTimeout(()=>saveDraftNow(false), 3500);
         }
         window.saveDraftNow = async (showToast=false) => {
             if (!AppSession.token || AppSession.role!=='STUDENT' || AppSession.isFinal || cloudSaveInFlight) return;
@@ -3658,8 +3663,10 @@
         resetStateForStudent(null);
         document.getElementById('appContainer').style.display='none';
         document.getElementById('adminContainer').style.display='none';
-        loadPublicStats();
-        restoreSessionIfPossible();
+        (async()=>{
+            const restored = await restoreSessionIfPossible();
+            if (!restored) loadPublicStats();
+        })();
 
     </script>
 </body>
