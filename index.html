@@ -1009,6 +1009,36 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
 }
 @media print { .dash-sidebar,.dash-metrics,.dash-section-heading,.dash-analytics,#dashBackdrop,.dash-menu-toggle { display:none!important; }.app-container,.admin-container { margin:0!important; width:100%!important; } }
 
+    
+/* HEAD TO TOE GUIDED V1 */
+/* Head to Toe: stays inside the existing Asuhan card and print margins. */
+.htt-panel { width:100%; max-width:100%; min-width:0; margin:0 0 14px; padding:16px; background:#f5f9fe; border:1px solid #d4e5f6; border-radius:16px; }
+.htt-panel > strong { color:#163d69; font-size:.88rem; }
+.htt-help,.htt-hint { font-size:.76rem; color:#47627e; line-height:1.65; overflow-wrap:anywhere; }
+.htt-help { margin:8px 0 12px; }
+.htt-actions { display:flex; flex-wrap:wrap; gap:9px; align-items:center; }
+.htt-completion { font-size:.72rem; color:#47627e; font-weight:700; }
+.htt-guide { display:grid; gap:10px; margin-top:14px; min-width:0; }
+.htt-section { background:#fff; border:1px solid #dce7f3; border-radius:12px; min-width:0; }
+.htt-section > summary { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 14px; color:#163d69; font-size:.8rem; font-weight:700; cursor:pointer; list-style:none; }
+.htt-section > summary::before { content:'+'; flex:none; font-size:1rem; }
+.htt-section[open] > summary::before { content:'−'; }
+.htt-section > summary > span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.htt-badge { flex:none; color:#647f98; font-size:.66rem; font-weight:500; }
+.htt-section-body { padding:0 14px 14px; }
+.htt-hint { padding:10px 12px; background:#f5f8fc; border-radius:9px; margin:0 0 12px; }
+.htt-section .form-label { font-size:.75rem; margin-top:12px; }
+.htt-section .form-input,.htt-section .form-select,.htt-section .form-textarea { width:100%; min-width:0; max-width:100%; font-size:.8rem; }
+.htt-section .form-textarea,#asuhanFisik { overflow-wrap:anywhere; white-space:pre-wrap; resize:vertical; }
+#asuhanFisik { width:100%; max-width:100%; min-width:0; }
+.htt-narrative { margin:0 0 16px; border:1px solid #dce7f3; border-radius:12px; padding:12px; min-width:0; }
+.htt-narrative > summary { font-size:.77rem; color:#365f87; cursor:pointer; margin-bottom:9px; }
+.htt-panel [hidden] { display:none!important; }
+.htt-panel button:disabled { opacity:.55; cursor:not-allowed; }
+.htt-section > summary:focus-visible,.htt-narrative > summary:focus-visible { outline:3px solid #78baff; outline-offset:2px; border-radius:8px; }
+@media (max-width:560px) { .htt-panel { padding:12px; }.htt-section > summary { padding:12px 10px; }.htt-section-body { padding:0 10px 12px; }.htt-actions .btn { white-space:normal; }.htt-completion { width:100%; } }
+@media print { #printReport .report-physical { break-inside:auto!important; page-break-inside:auto!important; max-width:100%; min-width:0; overflow-wrap:anywhere; word-break:break-word; } }
+
     </style>
     <!-- SheetJS: membaca/menulis file Excel di browser untuk import akun mahasiswa -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -3046,7 +3076,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
 
                 const as = State.asuhan[m] || {};
                 html += `<h5>📝 Asuhan Keperawatan:</h5>`;
-                html += `<div class="review-item"><strong>Fisik:</strong> ${as.fisik||'-'}</div>`;
+                html += `<div class="review-item"><strong>Fisik:</strong> ${nl2br(as.fisik||'-')}</div>`;
                 html += `<div class="review-item"><strong>Analisa Data:</strong><br>`;
                 if (as.analisa && as.analisa.length) {
                     as.analisa.forEach((r, i) => {
@@ -3883,6 +3913,106 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
 })();
 
 </script>
+<!-- HEAD TO TOE GUIDED V1 -->
+<script>
+/* Guided physical assessment: stored in the existing asuhan[week].fisik narrative. */
+const GERO_HTT_MARKER = 'PENGKAJIAN HEAD TO TOE GERONTIK — FORMAT V1';
+const GERO_HTT_STATUSES = ['Dikaji','Belum dikaji','Tidak dapat dinilai','Tidak relevan'];
+const GERO_HTT_SECTIONS = [
+ ['Identitas pemeriksaan','Tanggal dan jam; nama pemeriksa; sumber informasi (lansia, pendamping, observasi); persetujuan dan pendampingan sesuai SOP.'],
+ ['Keadaan umum dan kesadaran','Keluhan utama; tampilan umum; tingkat kesadaran dan orientasi yang dinilai; kondisi dasar sebelumnya dan perubahan baru. GCS bila dilakukan sesuai indikasi.'],
+ ['Tanda vital dan antropometri','TD (mmHg) beserta posisi; nadi dan napas (x/menit); suhu (°C); SpO₂ (%) bila tersedia beserta dukungan oksigen; BB (kg), TB (cm), serta metode pengukuran atau keterbatasannya.'],
+ ['Kepala dan wajah','Bentuk/simetri; kondisi kulit kepala dan rambut; lesi, benjolan atau nyeri yang ditemukan. Catat metode pemeriksaan yang dilakukan.'],
+ ['Mata dan penglihatan','Keluhan penglihatan; penggunaan kacamata; kondisi kelopak, konjungtiva dan sklera; pupil bila diperiksa. Jelaskan keterbatasan penglihatan terhadap kegiatan sehari-hari.'],
+ ['Telinga dan pendengaran','Keluhan dan kemampuan mendengar saat komunikasi; penggunaan alat bantu; kondisi telinga luar, sekret atau nyeri bila dinilai.'],
+ ['Hidung dan sinus','Keluhan sumbatan; sekret atau perdarahan; kondisi mukosa dan nyeri bila diperiksa.'],
+ ['Mulut, gigi dan menelan','Kondisi bibir/mukosa; gigi dan gigi palsu; kebersihan mulut; keluhan mengunyah/menelan atau batuk saat makan berdasarkan pengkajian. Uji menelan hanya sesuai kompetensi dan SOP.'],
+ ['Leher','Gerak leher; keluhan nyeri; benjolan/pembesaran yang ditemukan. Pemeriksaan tambahan hanya sesuai indikasi dan kompetensi.'],
+ ['Dada dan pernapasan','Pola, usaha dan simetri napas; batuk/sputum; alat bantu napas. Tuliskan hasil inspeksi dan pemeriksaan lain yang benar-benar dilakukan, termasuk suara napas bila diauskultasi.'],
+ ['Jantung dan sirkulasi perifer','Keluhan terkait; frekuensi/irama nadi; perfusi perifer, edema dan lokasinya; suara jantung bila diperiksa. Bandingkan sisi kanan/kiri bila relevan.'],
+ ['Abdomen dan pencernaan','Keluhan, bentuk/distensi, bising usus dan hasil pemeriksaan yang dilakukan; pola BAB, BAB terakhir, konstipasi atau inkontinensia. Auskultasi dilakukan sebelum perkusi/palpasi sesuai SOP.'],
+ ['Genitourinaria dan eliminasi urine','Pola/keluhan BAK; inkontinensia, retensi atau alat yang digunakan; karakter urine bila teramati. Pemeriksaan area intim hanya sesuai indikasi, persetujuan, privasi dan SOP.'],
+ ['Muskuloskeletal, kaki dan mobilitas','Nyeri/kaku sendi; ROM dan kekuatan yang dinilai; transfer, cara berjalan, keseimbangan, alat bantu dan kebutuhan bantuan; kondisi kaki serta alas kaki. Utamakan keselamatan saat mobilisasi.'],
+ ['Neurologis','Komunikasi, orientasi, respons motorik dan sensorik yang dinilai; perbedaan kanan/kiri; perubahan baru dibanding kondisi dasar. Hubungkan dengan skrining kognitif/delirium yang sudah tersedia.'],
+ ['Kulit, kuku dan luka','Warna, kelembapan dan integritas kulit; area penekanan; luka beserta lokasi, ukuran dan karakter yang teramati; kondisi kuku. Jangan menetapkan stadium luka tanpa pemeriksaan dan kompetensi yang sesuai.'],
+ ['Nyeri, kenyamanan dan toleransi','Lokasi, intensitas, karakter dan dampak nyeri; metode penilaian (termasuk bila komunikasi terbatas); toleransi pemeriksaan, kebutuhan istirahat dan penyesuaian posisi.'],
+ ['Temuan prioritas dan tindak lanjut','Ringkas temuan bermakna; tuliskan siapa yang dihubungi, waktu pelaporan, arahan dan tindak lanjut. Bila tidak ada temuan prioritas, dokumentasikan berdasarkan pemeriksaan yang dilakukan.']
+].map(([title,hint],i)=>({id:String(i+1).padStart(2,'0'),heading:String(i+1).padStart(2,'0')+'. '+title.toUpperCase(),title,hint}));
+
+function serializeGeroHTT(legacy,fields) {
+ const blocks=GERO_HTT_SECTIONS.flatMap(section=>{
+  const field=fields[section.id]||{},status=GERO_HTT_STATUSES.includes(field.status)?field.status:'',note=String(field.note||'').trim();
+  return status||note?[section.heading+'\nStatus pemeriksaan: '+(status||'[belum dipilih]')+'\nTemuan/catatan: '+(note||'[belum diisi]')]:[];
+ });
+ return blocks.length?(legacy?legacy+'\n\n':'')+GERO_HTT_MARKER+'\n\n'+blocks.join('\n\n'):legacy;
+}
+function parseGeroHTT(value) {
+ const raw=String(value||'').replace(/\r\n/g,'\n'),position=raw.indexOf(GERO_HTT_MARKER);
+ const fallback={structured:false,legacy:raw,fields:{}};
+ if(position<0)return fallback;
+ const legacy=position?raw.slice(0,position).replace(/\n\n$/,''):'',lines=raw.slice(position+GERO_HTT_MARKER.length).trim().split('\n'),fields={};
+ const headings=new Map(GERO_HTT_SECTIONS.map(section=>[section.heading,section.id]));
+ let i=0;
+ while(i<lines.length){
+  if(!lines[i].trim()){i++;continue;}
+  const id=headings.get(lines[i]);if(!id||fields[id]||!lines[i+1]?.startsWith('Status pemeriksaan: ')||!lines[i+2]?.startsWith('Temuan/catatan: '))return fallback;
+  const statusValue=lines[i+1].slice(20);if(!GERO_HTT_STATUSES.includes(statusValue)&&statusValue!=='[belum dipilih]')return fallback;
+  let end=i+3;while(end<lines.length&&!headings.has(lines[end]))end++;
+  const note=([lines[i+2].slice(16),...lines.slice(i+3,end)].join('\n')).trim();
+  fields[id]={status:statusValue==='[belum dipilih]'?'':statusValue,note:note==='[belum diisi]'?'':note};i=end;
+ }
+ if(serializeGeroHTT(legacy,fields).trim()!==raw.trim())return fallback;
+ return {structured:true,legacy,fields};
+}
+function geroHTTCompletion(fields) {
+ const missing=GERO_HTT_SECTIONS.filter(section=>{const f=fields[section.id],note=String(f?.note||'').trim();return !f||!GERO_HTT_STATUSES.includes(f.status)||!note||note==='[belum diisi]';});
+ return {complete:GERO_HTT_SECTIONS.length-missing.length,total:GERO_HTT_SECTIONS.length,missing};
+}
+
+(() => {
+ const raw=document.getElementById('asuhanFisik');if(!raw)return;
+ const make=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
+ const panel=make('section','htt-panel no-print');panel.setAttribute('aria-label','Format pengkajian fisik terpandu');
+ const title=make('strong','','Format Head to Toe Gerontik');
+ const help=make('p','htt-help','Isi temuan nyata atau alasan belum dikaji/tidak dapat dinilai. Pemeriksaan mengikuti kondisi lansia, kompetensi dan SOP panti; dapat dibagi dalam beberapa sesi. Temuan akut dilaporkan segera kepada perawat/preseptor.');
+ const legacyNotice=make('p','htt-help','Catatan sebelumnya tetap dipertahankan. Hasil format terpandu akan ditambahkan setelah catatan tersebut.');
+ const actions=make('div','htt-actions'),toggle=make('button','btn btn-sm btn-outline'),expand=make('button','btn btn-sm btn-outline','Buka semua bagian'),status=make('span','htt-completion');toggle.type=expand.type='button';
+ status.setAttribute('role','status');status.setAttribute('aria-live','polite');actions.append(toggle,expand,status);panel.append(title,help,legacyNotice,actions);
+ const guide=make('div','htt-guide');guide.id='geroHTTGuide';panel.append(guide);toggle.setAttribute('aria-controls',guide.id);
+ const controls=new Map();
+ GERO_HTT_SECTIONS.forEach(section=>{
+  const details=make('details','htt-section'),summary=make('summary'),name=make('span','',section.id+'. '+section.title),badge=make('small','htt-badge','Belum diisi');summary.append(name,badge);details.append(summary);
+  const body=make('div','htt-section-body'),hint=make('p','htt-hint',section.hint);hint.id='httHint'+section.id;
+  const label=make('label','form-label','Status pemeriksaan');label.htmlFor='httStatus'+section.id;
+  const select=make('select','form-select');select.id=label.htmlFor;select.add(new Option('Pilih status…',''));GERO_HTT_STATUSES.forEach(v=>select.add(new Option(v,v)));
+  const noteLabel=make('label','form-label','Temuan / catatan / alasan');noteLabel.htmlFor='httNote'+section.id;
+  const note=make('textarea','form-textarea');note.id=noteLabel.htmlFor;note.rows=3;note.placeholder='Tuliskan hasil pemeriksaan atau alasan sesuai status yang dipilih…';note.setAttribute('aria-describedby',hint.id);
+  body.append(hint,label,select,noteLabel,note);details.append(body);guide.append(details);controls.set(section.id,{details,select,note,badge});
+ });
+ const narrative=make('details','htt-narrative');const summary=make('summary','','Lihat narasi pengkajian yang tersimpan');narrative.append(summary);raw.before(panel,narrative);narrative.append(raw);raw.rows=12;raw.setAttribute('aria-label','Narasi pemeriksaan fisik Head to Toe');
+ let legacy='',manual=false;
+ const readFields=()=>Object.fromEntries(Array.from(controls,([id,c])=>[id,{status:c.select.value,note:c.note.value}]));
+ const locked=()=>AppSession.role!=='STUDENT'||AppSession.isFinal;
+ function syncLock(){const lock=locked();[toggle,...Array.from(controls.values()).flatMap(c=>[c.select,c.note])].forEach(node=>{if(node.disabled!==lock)node.disabled=lock;});if(raw.disabled!==lock)raw.disabled=lock;raw.readOnly=!manual;}
+ function updateCompletion(){const result=geroHTTCompletion(readFields());const text='Bagian terdokumentasi: '+result.complete+'/'+result.total;if(status.textContent!==text)status.textContent=text;controls.forEach(c=>{c.badge.textContent=c.select.value&&c.note.value.trim()?'Terisi':c.select.value||c.note.value.trim()?'Belum lengkap':'Belum diisi';});}
+ function showMode(){guide.hidden=manual;expand.hidden=manual;status.hidden=manual;legacyNotice.hidden=!legacy.trim();toggle.textContent=manual?'Gunakan format terpandu':'Edit sebagai narasi';toggle.setAttribute('aria-expanded',String(!manual));if(manual)narrative.open=true;syncLock();updateCompletion();}
+ function refresh(){const parsed=parseGeroHTT(raw.value);legacy=parsed.legacy;manual=!parsed.structured&&!!raw.value.trim();controls.forEach((c,id)=>{c.select.value=parsed.fields[id]?.status||'';c.note.value=parsed.fields[id]?.note||'';c.details.open=id==='01';});expand.textContent='Buka semua bagian';showMode();}
+ function persist(){if(locked()||manual)return;raw.value=serializeGeroHTT(legacy,readFields());const a=State.asuhan[State.weekAsuhan]||{};a.fisik=raw.value;State.asuhan[State.weekAsuhan]=a;updateCompletion();raw.dispatchEvent(new Event('input',{bubbles:true}));}
+ guide.addEventListener('input',persist);guide.addEventListener('change',persist);
+ raw.addEventListener('input',()=>{if(!locked()&&manual){const a=State.asuhan[State.weekAsuhan]||{};a.fisik=raw.value;State.asuhan[State.weekAsuhan]=a;}});
+ toggle.addEventListener('click',()=>{if(locked())return;if(manual){const parsed=parseGeroHTT(raw.value);legacy=parsed.legacy;controls.forEach((c,id)=>{c.select.value=parsed.fields[id]?.status||'';c.note.value=parsed.fields[id]?.note||'';});manual=false;}else manual=true;showMode();});
+ expand.addEventListener('click',()=>{const open=Array.from(controls.values()).some(c=>!c.details.open);controls.forEach(c=>c.details.open=open);expand.textContent=open?'Tutup semua bagian':'Buka semua bagian';});
+ const originalFill=window.isiFormAsuhan;window.isiFormAsuhan=function(...args){const result=originalFill.apply(this,args);refresh();return result;};
+ const originalWeek=window.pilihMingguAsuhan;window.pilihMingguAsuhan=function(m){if(!locked())captureCurrentFormsToState(false);return originalWeek(m);};
+ const originalFinal=window.syncFinal;window.syncFinal=async function(...args){if(!locked()){captureCurrentFormsToState(false);for(const week of [1,2]){const parsed=parseGeroHTT(State.asuhan[week]?.fisik||'');if(parsed.structured){const result=geroHTTCompletion(parsed.fields);if(result.missing.length){toast('Head to Toe Minggu '+week+': '+result.complete+'/'+result.total+' bagian terdokumentasi. Lengkapi status dan catatan/alasan sebelum FINAL.');return;}}}}return originalFinal.apply(this,args);};
+ const originalPrint=window.renderFullPrintReport;window.renderFullPrintReport=function(...args){const result=originalPrint.apply(this,args);document.querySelectorAll('#printReport .report-box').forEach(box=>{if(box.querySelector('strong')?.textContent==='1. Pemeriksaan Fisik (Head to Toe)')box.classList.add('report-physical');});return result;};
+ new MutationObserver(syncLock).observe(raw,{attributes:true,attributeFilter:['disabled']});
+ [document.getElementById('appContainer'),document.getElementById('adminContainer')].forEach(root=>new MutationObserver(syncLock).observe(root,{attributes:true,attributeFilter:['style']}));
+ refresh();
+})();
+
+</script>
+
 
 </body>
 </html>
