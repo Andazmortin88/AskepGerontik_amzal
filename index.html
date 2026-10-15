@@ -895,6 +895,121 @@
             .mini-progress { width:70px; }
         }
 
+    
+/* GERONTIK DASHBOARD V2 */
+@media screen {
+body.gero-session { background:#f3f6fb; }
+body.gero-session > .bg-container { display:none; }
+.app-container,.admin-container { max-width:none; width:calc(100% - 244px); margin:0 0 0 244px; padding:24px 30px 48px; }
+.app-container > .page,.admin-container > .card,.admin-container > .admin-grid,.admin-container > .dash-analytics { max-width:1500px; margin-left:auto; margin-right:auto; }
+.app-container .app-header,.admin-container .app-header { background:#fff; border:1px solid #e3eaf3; border-radius:18px; box-shadow:0 4px 18px #173b6110; top:14px; margin-bottom:24px; }
+.app-container .card,.admin-container .card { background:#fff; border:1px solid #e2eaf3; box-shadow:0 4px 20px #173b6109; border-radius:20px; }
+.app-container .card:hover,.admin-container .card:hover { transform:none; }
+.app-container .header-logo,.admin-container .header-logo { width:44px; height:44px; border-radius:13px; font-size:22px; }
+.app-container .header-badge { background:#eef5fd; border:0; color:#44617e; }
+#navTabs.dash-sidebar,.dash-sidebar { position:fixed; inset:0 auto 0 0; width:244px; z-index:120; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:6px; padding:28px 16px 20px; background:#112d4d; color:#d7e6f7; border:0; border-radius:0; box-shadow:6px 0 24px #102c4912; overflow-y:auto; backdrop-filter:none; }
+.dash-brand { display:flex; align-items:center; gap:11px; padding:0 10px 24px; color:#fff; font-size:1.05rem; font-weight:800; line-height:1.25; }
+.dash-brand-icon { display:grid; place-items:center; width:38px; height:42px; border-radius:12px; background:#2c86df; font-size:21px; flex:none; }
+.dash-brand small { display:block; margin-top:5px; color:#9fb9d5; font-size:.65rem; font-weight:500; letter-spacing:.7px; text-transform:uppercase; }
+.dash-side-profile { padding:14px 12px; margin-bottom:12px; background:#ffffff08; border:1px solid #ffffff12; border-radius:13px; }
+.dash-side-profile strong { display:block; font-size:.82rem; overflow-wrap:anywhere; color:#fff; }
+.dash-side-profile small { font-size:.7rem; color:#a9c3df; }
+.dash-nav-caption { padding:8px 12px; color:#88a7c8; font-size:.62rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; }
+#navTabs .nav-tab,.dash-nav-button { display:flex; flex:none; flex-direction:row; align-items:center; justify-content:flex-start; gap:13px; width:100%; min-height:47px; padding:12px 14px; border:0; border-radius:11px; background:transparent; color:#bcd0e5; cursor:pointer; text-align:left; font-family:inherit; font-weight:600; font-size:.83rem; text-decoration:none; transform:none; }
+#navTabs .nav-tab .tab-icon { width:23px; font-size:1.15rem; }
+#navTabs .nav-tab .tab-label { font-size:.8rem; text-transform:none; letter-spacing:0; }
+#navTabs .nav-tab.active,.dash-nav-button.active { background:#2382dc; color:#fff; box-shadow:0 6px 18px #091e3740; }
+#navTabs .nav-tab:hover,.dash-nav-button:hover { color:#fff; background:#ffffff12; }
+#navTabs .nav-tab.active:hover,.dash-nav-button.active:hover { background:#2382dc; }
+#navTabs .nav-tab:last-child,.dash-sidebar .dash-logout { margin-top:auto; }
+.dash-side-note { margin:24px 10px; color:#93afce; font-size:.7rem; line-height:1.65; }
+.dash-menu-toggle,.dash-close-menu { display:none; border:1px solid #dce7f2; background:#f2f7fd; color:#12375f; border-radius:10px; min-width:42px; min-height:42px; font-size:1.25rem; cursor:pointer; }
+.dash-close-menu { background:#ffffff12; color:#fff; border-color:#ffffff25; }
+#dashBackdrop { display:none; }
+.dash-section-heading { margin:0 0 16px; }
+.dash-section-heading small { display:block; color:#64809b; font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; }
+.dash-section-heading h2 { font-size:1.45rem; letter-spacing:-.5px; color:#12375f; margin-top:4px; }
+.dash-section-heading p { font-size:.8rem; color:#65809a; margin-top:4px; }
+.dash-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+.dash-metric,.admin-stat { background:#fff; border:1px solid #e1eaf4; border-radius:17px; padding:19px 20px; box-shadow:0 4px 16px #173b6108; }
+.dash-metric-label { font-size:.73rem; color:#617e9a; font-weight:600; }
+.dash-metric-value { display:block; margin-top:8px; color:#12375f; font-size:1.6rem; font-weight:800; line-height:1.3; }
+.dash-metric small { display:block; margin-top:7px; color:#69829a; font-size:.7rem; }
+.dash-metric:nth-child(2) { border-top:3px solid #3b9cba; }
+.dash-metric:nth-child(1) { border-top:3px solid #388be0; }
+.dash-metric:nth-child(3) { border-top:3px solid #61ac8b; }
+.admin-grid { gap:16px; margin-bottom:22px; }
+.admin-stat strong { font-size:1.9rem; color:#163d69; }
+.admin-stat span { font-size:.68rem; text-transform:none; letter-spacing:0; }
+.admin-stat:nth-child(1) { border-top:3px solid #388be0; }
+.admin-stat:nth-child(2) { border-top:3px solid #dba444; }
+.admin-stat:nth-child(3) { border-top:3px solid #47a980; }
+.admin-stat:nth-child(4) { border-top:3px solid #7b80ce; }
+.progress-big { background:#f4f8fe; border-color:#dce9f7; }
+.dash-week-track { height:8px; background:#e7eef8; border-radius:20px; overflow:hidden; margin-top:14px; }
+.dash-week-track span { display:block; height:100%; width:0; background:#3689df; border-radius:20px; transition:width .3s; }
+.dash-week-track.second span { background:#42a6af; }
+.dash-analytics { display:grid; grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr); gap:18px; margin-bottom:20px; }
+.dash-analytics .card { margin:0; min-width:0; padding:24px; }
+.dash-chart-subtitle { font-size:.73rem; color:#6e879e; margin:5px 0 20px; }
+.dash-status-chart { display:flex; align-items:center; justify-content:center; gap:25px; flex-wrap:wrap; }
+.dash-donut { width:154px; height:154px; flex:none; border-radius:50%; background:#e6edf5; position:relative; display:grid; place-items:center; }
+.dash-donut::before { content:''; position:absolute; inset:17px; border-radius:50%; background:white; }
+.dash-donut-center { position:relative; text-align:center; }
+.dash-donut-center strong { display:block; font-size:1.9rem; line-height:1.2; color:#183c64; }
+.dash-donut-center small { font-size:.65rem; color:#6c8299; }
+.dash-legend { list-style:none; display:grid; gap:10px; padding:0; min-width:130px; font-size:.77rem; }
+.dash-legend li { display:flex; align-items:center; gap:8px; color:#61768c; }
+.dash-legend b { margin-left:auto; color:#193d64; }
+.dash-dot { width:9px; height:9px; border-radius:3px; display:inline-block; background:#dce7f1; flex:none; }
+.dash-class-bars { display:grid; gap:15px; max-height:240px; overflow:auto; padding-right:8px; }
+.dash-class-label { display:flex; justify-content:space-between; gap:10px; margin-bottom:6px; color:#486782; font-size:.75rem; }
+.dash-class-label span { overflow-wrap:anywhere; }
+.dash-class-label b { color:#204b78; white-space:nowrap; }
+.dash-class-track { height:10px; border-radius:20px; background:#eaf0f7; overflow:hidden; }
+.dash-class-track span { display:block; height:100%; border-radius:20px; background:#388be0; }
+.dash-filters { display:grid; grid-template-columns:minmax(180px,1.6fr) minmax(140px,1fr) minmax(140px,1fr); gap:12px; padding:16px; margin-bottom:12px; background:#f5f8fc; border-radius:14px; }
+.dash-filters label { display:block; font-size:.7rem; font-weight:700; color:#526e88; margin-bottom:5px; }
+.dash-filters .form-input,.dash-filters .form-select { padding:9px 12px; font-size:.8rem; border-width:1px; background:#fff; }
+.dash-filter-count { font-size:.72rem; color:#6c8399; margin-bottom:12px; }
+#adminStudentBody tr[hidden] { display:none!important; }
+.admin-container > .card { scroll-margin-top:110px; }
+#dosen-overview { scroll-margin-top:110px; }
+.admin-table th { background:#f3f7fc; color:#4e6e8f; font-size:.66rem; letter-spacing:.5px; }
+.admin-table td { padding:14px 10px; }
+.dash-sidebar button:focus-visible,.dash-sidebar a:focus-visible,.dash-menu-toggle:focus-visible { outline:3px solid #78baff; outline-offset:3px; }
+@media (max-width:1150px) { .app-container,.admin-container { padding:20px; }.dash-analytics { grid-template-columns:1fr; }.app-container .app-header .header-badge { display:none; } }
+@media (max-width:900px) {
+ .app-container,.admin-container { width:100%; margin:0; padding:14px 14px 32px; }
+ #navTabs.dash-sidebar,.dash-sidebar { width:260px; transform:translateX(-100%); visibility:hidden; transition:transform .2s,visibility .2s; }
+ body.gero-menu-open .dash-sidebar { transform:translateX(0); visibility:visible; }
+ .dash-menu-toggle,.dash-close-menu { display:inline-grid; place-items:center; flex:none; }
+ .dash-close-menu { align-self:flex-end; margin-bottom:16px; }
+ body.gero-menu-open #dashBackdrop { display:block; position:fixed; inset:0; z-index:119; border:0; background:#0b213b80; }
+ body.gero-menu-open { overflow:hidden; }
+ .app-container .app-header,.admin-container .app-header { top:8px; padding:12px; gap:10px; border-radius:15px; }
+ .app-container .app-header .header-logo,.admin-container .app-header .header-logo { display:none; }
+ .app-container .header-info,.admin-container .header-info { flex:1; min-width:160px; }
+ .app-container .header-info h1,.admin-container .header-info h1 { font-size:.88rem; }
+ .app-container .header-info .subtitle,.admin-container .header-info .subtitle { font-size:.65rem; }
+ .app-container .header-badge { display:none; }
+ .app-container .card,.admin-container .card { padding:20px 16px; }
+ .admin-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+ .dash-filters { grid-template-columns:1fr 1fr; }.dash-filters > div:first-child { grid-column:1/-1; }
+}
+@media (max-width:560px) {
+ .dash-metrics { grid-template-columns:1fr 1fr; gap:10px; }.dash-metric:last-child { grid-column:1/-1; }
+ .dash-metric { padding:14px; }.dash-metric-value { font-size:1.35rem; }
+ .app-container .app-header > div:last-child { width:100%; text-align:left!important; margin:0!important; }
+ .app-container .app-header .save-status { justify-content:flex-start!important; margin:0!important; }
+ .dash-analytics .card { padding:20px 16px; }.dash-status-chart { gap:18px; }
+ .dash-filters { grid-template-columns:1fr; }.dash-filters > div:first-child { grid-column:auto; }
+ .dashboard-head .student-chip { width:100%; }.progress-layout { gap:14px; }
+}
+@media (prefers-reduced-motion:reduce) { .dash-sidebar,.dash-week-track span { transition:none!important; } }
+}
+@media print { .dash-sidebar,.dash-metrics,.dash-section-heading,.dash-analytics,#dashBackdrop,.dash-menu-toggle { display:none!important; }.app-container,.admin-container { margin:0!important; width:100%!important; } }
+
     </style>
     <!-- SheetJS: membaca/menulis file Excel di browser untuk import akun mahasiswa -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -3678,5 +3793,97 @@
         })();
 
     </script>
+<!-- GERONTIK DASHBOARD V2 -->
+<script>
+/* Dashboard Gerontik V2. Uses existing rendered data; no new API or storage. */
+(() => {
+ 'use strict';
+ const student=document.getElementById('appContainer'), admin=document.getElementById('adminContainer'), studentNav=document.getElementById('navTabs');
+ if(!student||!admin||!studentNav) return;
+ const mobile=window.matchMedia('(max-width:900px)');
+ const make=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
+ const byId=id=>document.getElementById(id);
+ const safePercent=value=>Math.max(0,Math.min(100,parseFloat(value)||0));
+ const backdrop=make('button','no-print');backdrop.id='dashBackdrop';backdrop.type='button';backdrop.setAttribute('aria-label','Tutup menu navigasi');document.body.append(backdrop);
+ const adminNav=make('nav','dash-sidebar no-print');adminNav.id='dosenSidebar';adminNav.setAttribute('aria-label','Navigasi dosen');admin.prepend(adminNav);
+ studentNav.classList.add('dash-sidebar');studentNav.setAttribute('role','navigation');studentNav.setAttribute('aria-label','Navigasi mahasiswa');
+ function decorateSidebar(nav,role){
+  const close=make('button','dash-close-menu','×');close.type='button';close.setAttribute('aria-label','Tutup menu navigasi');close.addEventListener('click',()=>setMenu(false));
+  const brand=make('div','dash-brand');const brandText=make('span','', 'Askep Gerontik');brandText.append(make('small','','Digital workspace'));brand.append(make('span','dash-brand-icon','✚'),brandText);
+  const profile=make('div','dash-side-profile');const name=make('strong','','');name.dataset.sideName=role;profile.append(name,make('small','',role==='student'?'Akun mahasiswa':'Akun dosen / admin'));
+  nav.prepend(close,brand,profile,make('div','dash-nav-caption','Ruang kerja'));
+ }
+ decorateSidebar(studentNav,'student');decorateSidebar(adminNav,'admin');
+ const studentExit=studentNav.querySelector('.nav-tab:not([data-page])');
+ if(studentExit){studentExit.classList.remove('nav-tab');studentExit.classList.add('dash-nav-button','dash-logout');}
+ const adminHeader=admin.querySelector('.app-header'), adminStats=admin.querySelector('.admin-grid'), oldAdminCards=Array.from(admin.children).filter(el=>el.classList.contains('card'));
+ adminStats.id='dosen-overview';
+ const addCard=oldAdminCards[0],importCard=oldAdminCards[1],monitorCard=oldAdminCards[2];
+ addCard.id='dosen-tambah';importCard.id='dosen-import';monitorCard.id='dosen-monitoring';
+ adminStats.after(monitorCard);
+ const adminLinks=[['◫','Ringkasan','dosen-overview'],['▤','Monitoring mahasiswa','dosen-monitoring'],['＋','Tambah mahasiswa','dosen-tambah'],['⇧','Import akun','dosen-import']];
+ adminLinks.forEach(([icon,label,id],i)=>{const a=make('a','dash-nav-button'+(i===0?' active':''));a.href='#'+id;a.append(make('span','',icon),make('span','',label));if(i===0)a.setAttribute('aria-current','location');a.addEventListener('click',e=>{e.preventDefault();adminNav.querySelectorAll('a').forEach(x=>{x.classList.toggle('active',x===a);if(x===a)x.setAttribute('aria-current','location');else x.removeAttribute('aria-current');});setMenu(false,false);const target=byId(id);target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});});adminNav.append(a);});
+ adminNav.append(make('p','dash-side-note','Pantau pengkajian dan dampingi mahasiswa menyelesaikan Askep.'));
+ const logout=make('button','dash-nav-button dash-logout','↪  Keluar');logout.type='button';logout.addEventListener('click',()=>logoutApp());adminNav.append(logout);
+ const toggles=[];
+ [student.querySelector('.app-header'),adminHeader].forEach((header,i)=>{const button=make('button','dash-menu-toggle','☰');button.type='button';button.setAttribute('aria-label','Buka menu navigasi');button.setAttribute('aria-controls',i===0?'navTabs':'dosenSidebar');button.setAttribute('aria-expanded','false');button.addEventListener('click',()=>setMenu(!document.body.classList.contains('gero-menu-open')));header.prepend(button);toggles.push(button);});
+ let returnFocus=null;
+ function setMenu(open,restore=true){
+  open=!!open&&mobile.matches;
+  if(open)returnFocus=document.activeElement;
+  document.body.classList.toggle('gero-menu-open',open);
+  toggles.forEach(button=>button.setAttribute('aria-expanded',String(open)));
+  [studentNav,adminNav].forEach(nav=>{nav.inert=mobile.matches&&!open;if(mobile.matches&&!open)nav.setAttribute('aria-hidden','true');else nav.removeAttribute('aria-hidden');});
+  if(open){const nav=student.style.display!=='none'?studentNav:adminNav;nav.querySelector('button').focus();}
+  else if(restore&&returnFocus?.isConnected&&returnFocus.getClientRects().length)returnFocus.focus();
+ }
+ backdrop.addEventListener('click',()=>setMenu(false));
+ document.addEventListener('keydown',event=>{
+  if(!document.body.classList.contains('gero-menu-open'))return;
+  if(event.key==='Escape'){event.preventDefault();setMenu(false);}
+  if(event.key==='Tab'){const nav=student.style.display!=='none'?studentNav:adminNav;const controls=Array.from(nav.querySelectorAll('a[href],button:not([disabled])'));const first=controls[0],last=controls[controls.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
+ });
+ mobile.addEventListener('change',()=>setMenu(false));
+ studentNav.addEventListener('click',event=>{const tab=event.target.closest('.nav-tab[data-page]');if(!tab)return;setMenu(false,false);if(mobile.matches){const heading=student.querySelector('.page.active');if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});}window.scrollTo(0,0);}if(tab.dataset.page==='page-welcome')renderStudentDashboard(false);syncStudent();});
+ const welcome=byId('page-welcome'), firstCard=welcome.querySelector('.card');
+ const metrics=make('div','dash-metrics no-print');metrics.innerHTML='<div class="dash-metric"><div class="dash-metric-label">Instrumen · Minggu 1</div><strong class="dash-metric-value" id="dashInst1">—</strong><small>Instrumen terisi lengkap</small></div><div class="dash-metric"><div class="dash-metric-label">Instrumen · Minggu 2</div><strong class="dash-metric-value" id="dashInst2">—</strong><small>Instrumen terisi lengkap</small></div><div class="dash-metric"><div class="dash-metric-label">Status pengumpulan</div><strong class="dash-metric-value" id="dashSubmit">—</strong><small id="dashSubmitNote">Status Askep Anda</small></div>';
+ firstCard.before(metrics);
+ [1,2].forEach(week=>{const track=make('div','dash-week-track'+(week===2?' second':''));const fill=make('span');fill.id='dashWeekBar'+week;track.setAttribute('aria-hidden','true');track.append(fill);byId('progressW'+week).parentElement.append(track);});
+ function syncStudent(){
+  [1,2].forEach(week=>{const text=byId('progressW'+week+'Text').textContent;const match=text.match(/(\d+)\s*\/\s*(\d+)/);byId('dashInst'+week).textContent=match?match[1]+' / '+match[2]:'—';byId('dashWeekBar'+week).style.width=safePercent(byId('progressW'+week).textContent)+'%';});
+  const final=AppSession.isFinal;byId('dashSubmit').textContent=final?'Final':safePercent(byId('myProgressNumber').textContent)>0?'Draft':'Belum mulai';byId('dashSubmitNote').textContent=final?'Sudah dikirim ke dosen':'Lengkapi pengkajian sebelum dikirim';
+  studentNav.querySelector('[data-side-name]').textContent=byId('dashStudentName').textContent||'Mahasiswa';
+  studentNav.querySelectorAll('[data-page]').forEach(tab=>{if(tab.classList.contains('active'))tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');});
+ }
+ const studentObserver=new MutationObserver(syncStudent);
+ ['progressW1','progressW2','progressW1Text','progressW2Text','myProgressNumber','myProgressText','dashStudentName','readonlyBanner'].forEach(id=>studentObserver.observe(byId(id),{childList:true,subtree:true,attributes:id==='readonlyBanner',attributeFilter:id==='readonlyBanner'?['style']:undefined}));
+ const overviewHeading=make('div','dash-section-heading no-print');overviewHeading.innerHTML='<small>Ruang dosen</small><h2>Ringkasan pengkajian</h2><p>Perkembangan mahasiswa dalam satu tampilan.</p>';adminHeader.after(overviewHeading);
+ const analytics=make('div','dash-analytics no-print');analytics.innerHTML='<section class="card"><h3 class="card-title">Status pengumpulan</h3><p class="dash-chart-subtitle">Seluruh akun pada tabel monitoring.</p><div class="dash-status-chart"><div class="dash-donut" id="dashDosenDonut"><div class="dash-donut-center"><strong id="dashDosenTotal">—</strong><small>akun mahasiswa</small></div></div><ul class="dash-legend" id="dashDosenLegend"></ul></div></section><section class="card"><h3 class="card-title">Progres per kelas</h3><p class="dash-chart-subtitle">Rata-rata kelengkapan Askep dari akun setiap kelas.</p><div class="dash-class-bars" id="dashClassBars"><p class="text-muted">Menunggu data monitoring…</p></div></section>';
+ adminStats.after(analytics);
+ const filters=make('div','dash-filters no-print');filters.innerHTML='<div><label for="dashStudentSearch">Cari mahasiswa</label><input class="form-input" id="dashStudentSearch" type="search" placeholder="Nama atau NIM…"></div><div><label for="dashClassFilter">Kelas / kelompok</label><select class="form-select" id="dashClassFilter"><option value="">Semua kelas</option></select></div><div><label for="dashStatusFilter">Status Askep</label><select class="form-select" id="dashStatusFilter"><option value="">Semua status</option><option value="FINAL">Final</option><option value="DRAFT">Draft</option><option value="NONE">Belum mulai</option></select></div>';
+ const count=make('p','dash-filter-count no-print');count.id='dashFilterCount';count.setAttribute('role','status');
+ monitorCard.querySelector('.admin-table-wrap').before(filters,count);
+ const empty=make('p','dash-filter-count');empty.hidden=true;empty.textContent='Tidak ada mahasiswa yang sesuai dengan pencarian atau filter.';monitorCard.append(empty);
+ let records=[];
+ function applyFilters(){const query=byId('dashStudentSearch').value.trim().toLocaleLowerCase('id'),kelas=byId('dashClassFilter').value,status=byId('dashStatusFilter').value;let shown=0;records.forEach(r=>{const visible=(!query||r.search.includes(query))&&(!kelas||r.kelas===kelas)&&(!status||r.status===status);r.row.hidden=!visible;if(visible)shown++;});count.textContent='Menampilkan '+shown+' dari '+records.length+' mahasiswa';empty.hidden=shown>0;}
+ filters.addEventListener('input',applyFilters);filters.addEventListener('change',applyFilters);
+ function syncAdmin(){
+  records=Array.from(byId('adminStudentBody').rows).filter(row=>row.cells.length===9).map(row=>{const c=row.cells;return {row,kelas:c[3].textContent.trim()||'Tanpa kelas',progress:safePercent(c[4].textContent),status:c[5].querySelector('.final')?'FINAL':c[5].querySelector('.draft')?'DRAFT':'NONE',search:(c[0].textContent+' '+c[1].textContent).toLocaleLowerCase('id')};});
+  const selected=byId('dashClassFilter').value,classes=Array.from(new Set(records.map(r=>r.kelas))).sort((a,b)=>a.localeCompare(b,'id'));const select=byId('dashClassFilter');select.replaceChildren(new Option('Semua kelas',''));classes.forEach(k=>select.add(new Option(k,k)));if(classes.includes(selected))select.value=selected;
+  const total=records.length,final=records.filter(r=>r.status==='FINAL').length,draft=records.filter(r=>r.status==='DRAFT').length,none=total-final-draft;
+  byId('dashDosenTotal').textContent=String(total);const finalEnd=total?final/total*100:0,draftEnd=total?(final+draft)/total*100:0;byId('dashDosenDonut').style.background=total?'conic-gradient(#48a783 0% '+finalEnd+'%, #e6ac50 '+finalEnd+'% '+draftEnd+'%, #dce7f1 '+draftEnd+'% 100%)':'#e6edf5';
+  const legend=byId('dashDosenLegend');legend.replaceChildren();[['Final',final,'#48a783'],['Draft',draft,'#e6ac50'],['Belum mulai',none,'#dce7f1']].forEach(([label,n,color])=>{const item=make('li');const dot=make('span','dash-dot');dot.style.background=color;item.append(dot,make('span','',label),make('b','',String(n)));legend.append(item);});
+  const bars=byId('dashClassBars');bars.replaceChildren();if(!total)bars.append(make('p','text-muted','Belum ada data mahasiswa untuk ditampilkan.'));
+  classes.forEach(k=>{const rows=records.filter(r=>r.kelas===k),avg=Math.round(rows.reduce((sum,r)=>sum+r.progress,0)/rows.length);const block=make('div'),label=make('div','dash-class-label'),track=make('div','dash-class-track'),fill=make('span');label.append(make('span','',k+' · '+rows.length+' mahasiswa'),make('b','',avg+'%'));track.setAttribute('aria-hidden','true');fill.style.width=avg+'%';track.append(fill);block.append(label,track);bars.append(block);});
+  adminNav.querySelector('[data-side-name]').textContent=AppSession.user?.nama||'Dosen / Admin';applyFilters();
+ }
+ new MutationObserver(syncAdmin).observe(byId('adminStudentBody'),{childList:true});
+ function syncSession(){const visible=getComputedStyle(student).display!=='none'||getComputedStyle(admin).display!=='none';document.body.classList.toggle('gero-session',visible);setMenu(false,false);if(visible){syncStudent();if(getComputedStyle(admin).display!=='none')adminNav.querySelector('[data-side-name]').textContent=AppSession.user?.nama||'Dosen / Admin';}}
+ const sessionObserver=new MutationObserver(syncSession);[student,admin].forEach(root=>sessionObserver.observe(root,{attributes:true,attributeFilter:['style']}));
+ syncSession();
+})();
+
+</script>
+
 </body>
 </html>
