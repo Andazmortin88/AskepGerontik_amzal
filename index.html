@@ -1042,6 +1042,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
     </style>
     <!-- SheetJS: membaca/menulis file Excel di browser untuk import akun mahasiswa -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="reports.css?v=20261016-pdf1">
 </head>
 <body>
 
@@ -1269,7 +1270,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
                 <div class="card-header"><div class="card-icon purple">📊</div><div class="card-title">Review Seluruh Pengkajian</div></div>
                 <div id="reviewContent"></div>
                 <div style="display:flex; gap:14px; justify-content:center; margin-top:20px; flex-wrap:wrap;" class="no-print">
-                    <button class="btn btn-primary" onclick="syncFinal()">📤 Kirim ke Dosen</button>
+                    <button class="btn btn-primary" onclick="syncFinal()">📤 Kirim Data FINAL</button>
                     <button class="btn btn-success" onclick="preparePrint()">🖨️ Cetak / PDF</button>
                 </div>
             </div>
@@ -4014,5 +4015,8 @@ function geroHTTCompletion(fields) {
 </script>
 
 
+<!-- GERO_PRIVATE_PDF_REPORTS_V1 -->
+<script src="reports.js?v=20261016-pdf1"></script>
 </body>
 </html>
+
