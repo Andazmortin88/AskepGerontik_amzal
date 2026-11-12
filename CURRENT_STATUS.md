@@ -55,3 +55,11 @@ Halaman privacy.html ditambahkan untuk menjelaskan data Google, portofolio, pera
 Pengguna menyetujui perubahan mode publikasi. Tombol Publish app dan Confirm dijalankan pada proyek askep-gerontik-digital. Halaman Audience kemudian menampilkan Publishing status: In production dan tombol Back to testing. Tidak menambah scope atau mengubah peran aplikasi. Tautan homepage dan privacy.html telah tersimpan di Branding.
 
 Akun Google di luar dua email uji dapat memulai login. Akun yang belum cocok dengan roster tetap pending tanpa akses portofolio mahasiswa lain; super admin memverifikasi dan menautkan identitas melalui alur yang sudah ada. Roster dummy masih belum memiliki email Google. Uji nyata mahasiswa/Indah dan uji beban 100 pengguna tetap belum dilakukan. Jangan mengulang pembuatan OAuth, mengganti secret, atau mengembalikan mode Testing ketika melanjutkan pekerjaan.
+
+## Audit fungsional 13 November 2026
+
+Audit parsial dan daftar tindak lanjut disimpan di AUDIT_PORTAL_20261113.md. Total 53 pengujian otomatis lulus. Simulasi SyncDocument untuk 100 pengguna mencapai 100 panggilan transport simultan, 100 dokumen/simpan/readback cocok; autentikasi dan server disimulasikan, 0 login Google dan 0 permintaan produksi. Ini bukan bukti kapasitas produksi.
+
+Diperbaiki: timeout capture kini gagal eksplisit dan mempertahankan form saat navigasi gagal; pengosongan teks asuhan; nilai TUG di luar rentang tidak lagi diubah diam-diam; proteksi hanya-baca diterapkan kembali setelah render dan mencakup input numerik; lokasi catatan tampil ke dosen. Dukungan reduced-motion formulir diperluas, placeholder nama meminta kode kasus.
+
+Belum lulus rilis penuh: browser mahasiswa-ke-dosen nyata, login 100 Google, beban Supabase, PDF E2E, koreksi field asal, pengecualian instrumen tidak dapat diperiksa, aksesibilitas formulir dan audit keamanan menyeluruh. Alat pemindaian standar keamanan tidak tersedia sehingga tidak ada laporan scan formal. Jangan mengklaim seluruh menu/form atau keamanan lulus berdasarkan tes lokal.

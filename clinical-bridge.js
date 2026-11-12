@@ -1,5 +1,7 @@
 (()=>{
  'use strict';let initialized=false,locked=true,delay;
+ const protectRender=fn=>function(...args){const result=fn.apply(this,args);if(initialized&&locked){enableReadOnlyMode();document.querySelectorAll('#page-asuhan button:not(.week-btn),#page-asuhan .remove').forEach(el=>{if(el.tagName==='BUTTON')el.disabled=true;else el.style.pointerEvents='none';});}return result;};
+ renderDemografi=protectRender(renderDemografi);renderAsuhan=protectRender(renderAsuhan);renderActiveInstrumen=protectRender(renderActiveInstrumen);
  const emit=()=>{if(initialized&&!locked)parent.postMessage({type:'gerontik:state',state:JSON.parse(JSON.stringify(State))},location.origin);};
  function capture(){if(!initialized||locked)return;captureCurrentFormsToState(false);emit();}
  saveStateFinalLocalOnly=()=>{};

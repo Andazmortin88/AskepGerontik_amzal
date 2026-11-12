@@ -5,3 +5,6 @@ test('missing instrument answers cannot be hidden by a forged progress percentag
 test('invalid numeric measurements are rejected',()=>{const state=full();state.clinicalState.instrumen[1].tug.t1='Infinity';assert(finalMissing(state).some(x=>x.includes('Timed Up')));});
 test('both weekly reflections are required',()=>{const state=full();state.reflections.pop();assert(finalMissing(state).includes('Refleksi minggu 2'));});
 test('ten logs need actual actions and reflection',()=>{const state=full();state.logs[0].summary=' ';assert(finalMissing(state).includes('Sepuluh catatan logbook lengkap'));});
+for(const [key,definition]of Object.entries(INSTRUMENT_SPEC))test('each item is required in both weeks: '+key,()=>{
+ for(const week of [1,2])for(const item of definition.items){const state=full();delete state.clinicalState.instrumen[week][key][item.id];assert(finalMissing(state).includes('Minggu '+week+': '+definition.title),key+':'+item.id+':'+week);}
+});

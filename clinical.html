@@ -1044,7 +1044,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
     
 <link rel="stylesheet" href="reports.css?v=20261016-pdf1">
 <link rel="stylesheet" href="shifts.css?v=20261025-1">
-<style>#coverScreen{display:none!important}.app-header{position:static!important}.dash-sidebar{top:0!important}@media screen{body{background:#f6f7f3!important}}</style></head>
+<style>#coverScreen{display:none!important}.app-header{position:static!important}.dash-sidebar{top:0!important}@media screen{body{background:#f6f7f3!important}}</style><style>@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}</style></head>
 <body>
 
     <!-- ─── BACKGROUND ─── -->
@@ -1172,7 +1172,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
                 <div class="print-header">ASUHAN KEPERAWATAN GERONTIK</div>
                 <div class="card-header"><div class="card-icon blue">📋</div><div class="card-title">Pengkajian Demografi Lansia</div></div>
                 <div class="grid-2">
-                    <div class="form-group"><label>Nama Lansia <span class="required">*</span></label><input class="form-input demografi-input" data-field="namaLansia" placeholder="Nama lengkap" /></div>
+                    <div class="form-group"><label>Nama Lansia <span class="required">*</span></label><input class="form-input demografi-input" data-field="namaLansia" placeholder="Kode kasus, tanpa nama lengkap" /></div>
                     <div class="form-group"><label>Usia <span class="required">*</span></label><input type="number" class="form-input demografi-input" data-field="usia" placeholder="Tahun" /></div>
                 </div>
                 <div class="grid-2">
@@ -2645,8 +2645,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
                 delete State.instrumenRaw[State.weekInst][activeInst][id];
             } else {
                 let value = Number(inputValue);
-                if (item?.min !== undefined) value = Math.max(value, Number(item.min));
-                if (item?.max !== undefined) value = Math.min(value, Number(item.max));
+                if (!Number.isFinite(value) || item?.min !== undefined && value < Number(item.min) || item?.max !== undefined && value > Number(item.max)) { toast('Nilai di luar rentang instrumen. Periksa pengukuran; nilai belum disimpan.'); renderActiveInstrumen(); return; }
                 State.instrumen[State.weekInst][activeInst][id] = value;
                 State.instrumenRaw[State.weekInst][activeInst][id] = { value, text:`${value} ${item?.unit || ''}`.trim(), inputType:'number' };
             }
@@ -3586,9 +3585,9 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
             State.demografi[State.weekDemo]=demo;
             // Asuhan aktif
             const a=State.asuhan[State.weekAsuhan] || {};
-            a.fisik=document.getElementById('asuhanFisik')?.value || a.fisik || '';
-            a.diagnosis=document.getElementById('asuhanDiagnosis')?.value || a.diagnosis || '';
-            a.implementasi=document.getElementById('asuhanImplementasi')?.value || a.implementasi || '';
+            a.fisik=document.getElementById('asuhanFisik')?.value ?? '';
+            a.diagnosis=document.getElementById('asuhanDiagnosis')?.value ?? '';
+            a.implementasi=document.getElementById('asuhanImplementasi')?.value ?? '';
             State.asuhan[State.weekAsuhan]=a;
             if(triggerSave) saveState(); else saveStateFinalLocalOnly();
         }
@@ -3669,7 +3668,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
         window.markRemindersRead=async()=>{try{await apiPostFinal('markRemindersRead',{});document.getElementById('reminderBox').style.display='none';}catch(e){}};
 
         function enableReadOnlyMode(){
-            document.querySelectorAll('#page-demografi input,#page-demografi select,#page-demografi textarea,#page-asuhan textarea,#page-asuhan [contenteditable="true"],#page-instrumen .option-chip').forEach(el=>{
+            document.querySelectorAll('#page-demografi input,#page-demografi select,#page-demografi textarea,#page-asuhan textarea,#page-asuhan [contenteditable="true"],#page-instrumen .option-chip,#page-instrumen input').forEach(el=>{
                 if(el.classList?.contains('option-chip')){el.style.pointerEvents='none';el.style.opacity='.82';}
                 else if(el.hasAttribute('contenteditable')) el.setAttribute('contenteditable','false');
                 else el.disabled=true;
@@ -4018,5 +4017,6 @@ function geroHTTCompletion(fields) {
 
 <script src="clinical-bridge.js"></script></body>
 </html>
+
 
 
