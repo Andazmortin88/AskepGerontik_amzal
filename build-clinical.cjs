@@ -1,0 +1,11 @@
+const fs=require('node:fs');const path=require('node:path');
+const root=__dirname;let html=fs.readFileSync(path.join(root,fs.existsSync(path.join(root,'legacy.html'))?'legacy.html':'index.html'),'utf8');
+const boot=/\(async\(\)=>\{\s*const restored = await restoreSessionIfPossible\(\);\s*if \(!restored\) loadPublicStats\(\);\s*\}\)\(\);/;
+if(!boot.test(html))throw new Error('Legacy bootstrap marker changed; inspect before building.');
+html=html.replace(boot,'/* Authentication is supplied by the account portal. */');
+html=html.replace('        loadPendingSyncs();','        /* Pending requests are owned by the parent portal. */').replace('        loadState();','        /* No legacy browser state is loaded in the embedded form. */');
+html=html.replace(/<script src="(?:reports|shifts)\.js[^\"]*"><\/script>/g,'');
+html=html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/xlsx[^\"]*"><\/script>/,'');
+html=html.replace('</head>','<style>#coverScreen{display:none!important}.app-header{position:static!important}.dash-sidebar{top:0!important}@media screen{body{background:#f6f7f3!important}}</style></head>');
+html=html.replace('</body>','<script src="clinical-bridge.js"></script></body>');
+fs.writeFileSync(path.join(root,'clinical.html'),html);console.log('Built clinical.html preserving all clinical definitions.');
