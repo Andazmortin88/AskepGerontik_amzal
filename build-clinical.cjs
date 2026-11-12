@@ -13,5 +13,7 @@ html=html.replace(/(a\.(?:fisik|diagnosis|implementasi)=document\.getElementById
 html=html.replace("#page-instrumen .option-chip').forEach", "#page-instrumen .option-chip,#page-instrumen input').forEach");
 html=html.replace("if (item?.min !== undefined) value = Math.max(value, Number(item.min));\n                if (item?.max !== undefined) value = Math.min(value, Number(item.max));", "if (!Number.isFinite(value) || item?.min !== undefined && value < Number(item.min) || item?.max !== undefined && value > Number(item.max)) { toast('Nilai di luar rentang instrumen. Periksa pengukuran; nilai belum disimpan.'); renderActiveInstrumen(); return; }");
 html=html.replace('placeholder="Nama lengkap"','placeholder="Kode kasus, tanpa nama lengkap"');
+// The closed-state ID selector must not outrank the open mobile drawer rule.
+html=html.replace('body.gero-menu-open .dash-sidebar {','body.gero-menu-open #navTabs.dash-sidebar,body.gero-menu-open .dash-sidebar {');
 html=html.replace('</head>','<style>@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}</style></head>');
 fs.writeFileSync(path.join(root,'clinical.html'),html);console.log('Built clinical.html preserving all clinical definitions.');

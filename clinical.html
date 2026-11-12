@@ -981,7 +981,7 @@ body.gero-session > .bg-container { display:none; }.app-container,.admin-contain
 @media (max-width:900px) {
  .app-container,.admin-container { width:100%; margin:0; padding:14px 14px 32px; }
  #navTabs.dash-sidebar,.dash-sidebar { width:260px; transform:translateX(-100%); visibility:hidden; transition:transform .2s,visibility .2s; }
- body.gero-menu-open .dash-sidebar { transform:translateX(0); visibility:visible; }
+ body.gero-menu-open #navTabs.dash-sidebar,body.gero-menu-open .dash-sidebar { transform:translateX(0); visibility:visible; }
  .dash-menu-toggle,.dash-close-menu { display:inline-grid; place-items:center; flex:none; }
  .dash-close-menu { align-self:flex-end; margin-bottom:16px; }
  body.gero-menu-open #dashBackdrop { display:block; position:fixed; inset:0; z-index:119; border:0; background:#0b213b80; }
