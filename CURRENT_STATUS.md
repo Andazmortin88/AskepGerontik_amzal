@@ -11,7 +11,7 @@ Diperbarui 13 November 2026 (WIB). Lanjutkan pekerjaan dari checkpoint ini; jang
 - Google OAuth sudah dibuat pada proyek Google Cloud askep-gerontik-digital; client bernama Askep Gerontik Web Login. Secret hanya dimasukkan ke panel penyedia, tidak disimpan di repository atau laporan ini.
 - Google provider pada Supabase sudah Enabled; nonce checks tidak dilewati, login tanpa email tidak diizinkan. Site URL menunjuk portal.html; redirect hanya portal.html?masuk=1 dan /?masuk=1 di domain aplikasi yang sama.
 - Uji masuk melalui portal -> Google -> Supabase -> dashboard berhasil untuk andazmortin@gmail.com. Server menetapkan Amzal Mortin Andas dengan roles super_admin dan lecturer; dashboard menampilkan kedua peran tersebut.
-- Dua pengguna uji Google tersimpan: andazmortin@gmail.com dan indahkeperawatan89@gmail.com. Akun Indah berhak lecturer sesuai konfigurasi backend, tetapi login nyata beliau belum diuji.
+- Sebelum publikasi OAuth, dua pengguna uji Google telah disimpan: andazmortin@gmail.com dan indahkeperawatan89@gmail.com. Akun Indah berhak lecturer sesuai konfigurasi backend, tetapi login nyata beliau belum diuji.
 - Unduhan Excel 100 dummy melalui menu aplikasi berhasil. Uji pemilih berkas/unggah belum selesai karena alat browser kehilangan keterkaitan tab dengan sesi, bukan karena kesalahan aplikasi yang terbukti.
 - Transaksi impor backend dibuat memakai fungsi gerontik_learning_import dengan actor super admin yang sudah login terverifikasi. Batch 3a4d1504-b1ea-4ed6-84d3-3c9f3b20137f menghasilkan tepat 100 peserta pada periode uji-v7; pengulangan batch yang identik tidak menambah peserta.
 - Kelompok 1–4 masing-masing 25. Penugasan uji: kelompok 1–2 kepada andazmortin@gmail.com, kelompok 3–4 kepada indahkeperawatan89@gmail.com. Ini data sintetis; email mahasiswa masih kosong dan belum merupakan 100 akun Google.
@@ -20,7 +20,7 @@ Diperbarui 13 November 2026 (WIB). Lanjutkan pekerjaan dari checkpoint ini; jang
 
 ## Batas kesiapan yang masih berlaku
 
-Google OAuth masih berstatus Testing, dengan batas pengguna uji yang ditampilkan Google 100. Jangan menyatakan siap 100 mahasiswa ditambah dosen sebelum konfigurasi publikasi/branding dan kebutuhan pengguna Google dituntaskan. Hanya dua email dosen di atas yang telah didaftarkan sebagai test users.
+Google OAuth sudah berstatus In production sejak 13 November 2026, setelah persetujuan eksplisit pengguna. Pembatasan login pada daftar dua email uji sudah dilepas. Ini bukan pernyataan bahwa seluruh aplikasi atau beban 100 mahasiswa telah lulus pengujian.
 
 Mahasiswa belum dapat diuji login nyata karena roster dummy belum memiliki email Google dan tidak ada identitas mahasiswa nyata yang disetujui untuk pengujian. Jangan menautkan berdasarkan nama/NIM yang diklaim sendiri atau mengubah peran akun dosen menjadi mahasiswa untuk simulasi.
 
@@ -49,3 +49,9 @@ Perbaikan frontend: konflik 409 saat mengulang antrean lama kini membuka pemulih
 Browser: dashboard memuat 100 peserta/4 kelompok; daftar bimbingan berisi 100 baris dan pencarian UJI0100 menghasilkan peserta Uji 100 pada kelompok 4. Menu tinjauan tanpa peserta terpilih menunjukkan permintaan pemilihan yang sesuai; arsip PDF menunjukkan kosong, bukan data akun lain. Halaman manajemen peserta diperiksa pada viewport 375x812 dan 1440x1000; lebar dokumen sama dengan area tampilan setelah scrollbar (360/1425 piksel), tanpa overflow halaman. Ukuran browser dikembalikan setelah pengujian.
 
 Halaman privacy.html ditambahkan untuk menjelaskan data Google, portofolio, peran, penyimpanan, layanan pihak ketiga dan kontak pengelola berdasarkan implementasi. Tautannya ditambahkan pada portal dan halaman masuk. Publikasi OAuth, email Google mahasiswa, uji login nyata Indah/mahasiswa, unggah Excel lewat pemilih berkas, PDF end-to-end, beban 100 pengguna serta pemulihan cadangan tetap merupakan pekerjaan tersisa; pemeriksaan ini tidak menggantikannya.
+
+## Publikasi Google Login — 13 November 2026
+
+Pengguna menyetujui perubahan mode publikasi. Tombol Publish app dan Confirm dijalankan pada proyek askep-gerontik-digital. Halaman Audience kemudian menampilkan Publishing status: In production dan tombol Back to testing. Tidak menambah scope atau mengubah peran aplikasi. Tautan homepage dan privacy.html telah tersimpan di Branding.
+
+Akun Google di luar dua email uji dapat memulai login. Akun yang belum cocok dengan roster tetap pending tanpa akses portofolio mahasiswa lain; super admin memverifikasi dan menautkan identitas melalui alur yang sudah ada. Roster dummy masih belum memiliki email Google. Uji nyata mahasiswa/Indah dan uji beban 100 pengguna tetap belum dilakukan. Jangan mengulang pembuatan OAuth, mengganti secret, atau mengembalikan mode Testing ketika melanjutkan pekerjaan.
