@@ -1,6 +1,6 @@
 # Status aktif Askep Gerontik Digital
 
-Diperbarui 12 November 2026 (WIB). Lanjutkan pekerjaan dari checkpoint ini; jangan membangun ulang aplikasi.
+Diperbarui 13 November 2026 (WIB). Lanjutkan pekerjaan dari checkpoint ini; jangan membangun ulang aplikasi.
 
 ## Yang sudah aktif dan diperiksa
 
@@ -16,7 +16,7 @@ Diperbarui 12 November 2026 (WIB). Lanjutkan pekerjaan dari checkpoint ini; jang
 - Transaksi impor backend dibuat memakai fungsi gerontik_learning_import dengan actor super admin yang sudah login terverifikasi. Batch 3a4d1504-b1ea-4ed6-84d3-3c9f3b20137f menghasilkan tepat 100 peserta pada periode uji-v7; pengulangan batch yang identik tidak menambah peserta.
 - Kelompok 1–4 masing-masing 25. Penugasan uji: kelompok 1–2 kepada andazmortin@gmail.com, kelompok 3–4 kepada indahkeperawatan89@gmail.com. Ini data sintetis; email mahasiswa masih kosong dan belum merupakan 100 akun Google.
 - Pemeriksaan terakhir: 54 FINAL lama dan 2 draf lama tetap ada. Tidak ada isi dokumen mahasiswa lama yang diedit pada pekerjaan ini.
-- 23 uji otomatis lokal lulus (10 handler backend, 8 sinkronisasi dan 5 pemeriksaan kelengkapan). Ini bukan hasil uji beban 100 pengguna.
+- 29 uji otomatis lokal lulus (10 handler backend, 10 sinkronisasi, 5 kelengkapan dan 4 penggantian sesi akun). Ini bukan hasil uji beban 100 pengguna.
 
 ## Batas kesiapan yang masih berlaku
 
@@ -39,3 +39,13 @@ Pertahankan akun: Amzal Mortin Andas super admin + dosen; Indah Puspitasari dose
 Backend versi 3 memeriksa kelengkapan pengkajian dua minggu berdasarkan 17 definisi instrumen yang dipertahankan dari aplikasi lama, analisis/rencana/implementasi asuhan, sepuluh logbook dan dua refleksi mingguan. Frontend menampilkan persyaratan yang sama. Dosen yang berwenang dapat membuka kembali dokumen FINAL dengan alasan tercatat dan expectedRevision; mahasiswa tetap tidak berwenang membuka sendiri. Snapshot FINAL dipertahankan dan revisi DRAFT baru dibuat.
 
 Fungsi gerontik_learning_reopen hanya dapat dipanggil service_role. Uji transaksi nyata pada data sintetis memeriksa penolakan actor tak berwenang, perubahan status/revisi, retry idempotent, penolakan reason berbeda pada operationId sama, keutuhan state, retensi snapshot dan penolakan save usang. Seluruh data uji transaksi di-rollback dan pemeriksaan setelahnya menemukan nol baris periode _audit_reopen_20261112. Roster uji tetap 100; arsip lama tetap 54 FINAL dan 2 draf. UI alur koreksi belum diuji menggunakan mahasiswa nyata.
+
+## Lanjutan 13 November 2026: pemulihan antrean dan sesi akun
+
+Tidak membangun ulang aplikasi. Deployment versi backend 3 sebelumnya telah berhasil. Pemeriksaan agregat tetap menunjukkan roster 100, profil Google 1, dokumen pembelajaran baru 0, arsip lama 54 FINAL dan 2 draf.
+
+Perbaikan frontend: konflik 409 saat mengulang antrean lama kini membuka pemulihan konflik beserta unduhan salinan lokal, bukan terus menghalangi pemuatan akun. Isian baru ditolak ketika pengiriman FINAL masih menunggu kepastian. Permintaan API kini memeriksa generasi sesi sebelum dikirim dan setelah respons diterima, sehingga permintaan lama dibatalkan saat akun berubah. Empat uji sesi dan sepuluh uji sinkronisasi termasuk dalam total 29 uji lokal yang lulus.
+
+Browser: dashboard memuat 100 peserta/4 kelompok; daftar bimbingan berisi 100 baris dan pencarian UJI0100 menghasilkan peserta Uji 100 pada kelompok 4. Menu tinjauan tanpa peserta terpilih menunjukkan permintaan pemilihan yang sesuai; arsip PDF menunjukkan kosong, bukan data akun lain. Halaman manajemen peserta diperiksa pada viewport 375x812 dan 1440x1000; lebar dokumen sama dengan area tampilan setelah scrollbar (360/1425 piksel), tanpa overflow halaman. Ukuran browser dikembalikan setelah pengujian.
+
+Halaman privacy.html ditambahkan untuk menjelaskan data Google, portofolio, peran, penyimpanan, layanan pihak ketiga dan kontak pengelola berdasarkan implementasi. Tautannya ditambahkan pada portal dan halaman masuk. Publikasi OAuth, email Google mahasiswa, uji login nyata Indah/mahasiswa, unggah Excel lewat pemilih berkas, PDF end-to-end, beban 100 pengguna serta pemulihan cadangan tetap merupakan pekerjaan tersisa; pemeriksaan ini tidak menggantikannya.

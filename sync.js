@@ -6,13 +6,13 @@
   persist(){this.storage.setItem(this.key,JSON.stringify({revision:this.revision,state:this.state,dirty:this.dirty,pending:this.pending,pendingEdit:this.pendingEdit,edit:this.edit}));}
   async initialize(){
    const c=this.cache;
-   if(c?.pending){try{const ack=await this.api('save',c.pending);if(this.closed)return;c.revision=ack.revision;c.pending=null;c.dirty=c.edit!==c.pendingEdit;this.storage.setItem(this.key,JSON.stringify(c));}catch(e){this.onStatus('Pengiriman sebelumnya belum selesai. Muat ulang setelah koneksi pulih.');throw e;}}
+   if(c?.pending){try{const ack=await this.api('save',c.pending);if(this.closed)return;c.revision=ack.revision;c.pending=null;c.dirty=c.edit!==c.pendingEdit;this.storage.setItem(this.key,JSON.stringify(c));}catch(e){if(this.closed)return;if(e.status===409){this.conflict=true;this.localConflict=copy(c.state);this.onStatus('Antrean lokal bertentangan dengan versi server. Salinan lokal dipertahankan.');}else{this.onStatus('Pengiriman sebelumnya belum selesai. Muat ulang setelah koneksi pulih.');throw e;}}}
    const r=await this.api('load',{});if(this.closed)return;
    const doc=r.document;this.revision=doc?.revision||0;this.locked=doc?.status==='FINAL';this.state=copy(doc?.state||{});
    if(c?.dirty){if(c.revision===this.revision&&!this.locked){this.state=copy(c.state);this.dirty=true;this.edit=c.edit||1;}else{this.conflict=true;this.localConflict=copy(c.state);this.onStatus('Konflik versi: salinan lokal dipertahankan. Unduh salinan sebelum memilih versi server.');}}
    this.loaded=true;if(!this.conflict)this.persist();return r;
   }
-  change(state){if(!this.loaded||this.closed||this.locked||this.conflict)throw new Error('Dokumen belum dapat diedit.');this.state=copy(state);this.dirty=true;this.edit++;this.persist();this.onStatus('Perubahan tersimpan di perangkat; menunggu server.');}
+  change(state){if(!this.loaded||this.closed||this.locked||this.conflict||this.pending?.finalize)throw new Error('Dokumen belum dapat diedit.');this.state=copy(state);this.dirty=true;this.edit++;this.persist();this.onStatus('Perubahan tersimpan di perangkat; menunggu server.');}
   async flush(finalize=false){
    if(this.closed||!this.loaded||this.conflict)throw new Error('Dokumen belum siap atau memiliki konflik.');
    if(this.running){await this.running;if(this.closed)return;if(this.dirty||finalize)return this.flush(finalize);return;}

@@ -9,10 +9,12 @@ function teacher(){return profile?.roles.some(x=>['super_admin','lecturer'].incl
 function admin(){return profile?.roles.includes('super_admin');}
 function status(message){const el=$('#syncStatus');if(el)el.textContent=message;const signal=$('#saveStatus');if(signal)signal.textContent=message;}
 async function api(action,payload={},subject=profile?.userId){
+ const requestGeneration=generation;
  const {data:{session},error}=await auth.auth.getSession();if(error||!session)throw Object.assign(new Error('Sesi berakhir. Masuk kembali dengan akun yang sama.'),{status:401});
  if(subject&&session.user.id!==subject)throw Object.assign(new Error('Akun berubah. Muat ulang sebelum melanjutkan.'),{status:401});
+ if(requestGeneration!==generation||subject&&profile?.userId!==subject)throw Object.assign(new Error('Permintaan dibatalkan karena sesi akun berubah.'),{status:499,cancelled:true});
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
- try{const response=await fetch(CONFIG.url+'/functions/v1/gerontik-learning-api',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:CONFIG.key},body:JSON.stringify({action,payload:{period:CONFIG.period,...payload}}),signal:controller.signal});const result=await response.json();if(!response.ok||result.status!=='success')throw Object.assign(new Error(result.message||'Permintaan belum berhasil.'),{status:response.status,result});return result;}finally{clearTimeout(timeout);}
+ try{const response=await fetch(CONFIG.url+'/functions/v1/gerontik-learning-api',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:CONFIG.key},body:JSON.stringify({action,payload:{period:CONFIG.period,...payload}}),signal:controller.signal});const result=await response.json();if(requestGeneration!==generation||subject&&profile?.userId!==subject)throw Object.assign(new Error('Permintaan dibatalkan karena sesi akun berubah.'),{status:499,cancelled:true});if(!response.ok||result.status!=='success')throw Object.assign(new Error(result.message||'Permintaan belum berhasil.'),{status:response.status,result});return result;}finally{clearTimeout(timeout);}
 }
 function baseState(s={}){return {logs:[],reflections:[],attendance:[],competency:[],...s};}
 function documentState(){return baseState(sync?.state||{});}
