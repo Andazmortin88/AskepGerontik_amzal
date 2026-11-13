@@ -552,7 +552,7 @@ function bindClinical(){State=initClinical();document.querySelectorAll('[data-go
 function attachModuleButtons(){document.querySelectorAll('[data-module]').forEach(b=>b.onclick=()=>{clinicalModule=b.dataset.module;render();window.scrollTo(0,0)})}
 const oldRenderClinical=render;render=function(){State=initClinical();oldRenderClinical();bindClinical();let main=$('#app');main.style.animation='none';void main.offsetWidth;main.style.animation='arrive .3s ease-out';};
 const insertion=pages.findIndex(x=>x[0]==='dashboard')+1;pages.splice(insertion,0,['demography','Identitas & demografi'],['instruments','17 instrumen asli'],['assessment','Pengkajian head-to-toe'],['careplan','Asuhan keperawatan'],['report','Laporan lengkap / PDF']);
-document.title='Askep Gerontik Digital — Preview V4 Pengkajian Lengkap';
+document.title='Askep Gerontik Terintegrasi — V6';
 const hiddenReport=document.createElement('div');hiddenReport.id='printReport';hiddenReport.hidden=true;document.body.append(hiddenReport);const printAll=document.createElement('div');printAll.id='printAll';printAll.style.display='none';document.body.append(printAll);
 const roleEl=$('#role'),headActions=document.createElement('div');headActions.className='head-actions';roleEl.before(headActions);const pdfButton=document.createElement('button');pdfButton.className='btn light header-pdf';pdfButton.textContent='Laporan lengkap / PDF';pdfButton.onclick=()=>go('report');headActions.append(pdfButton,roleEl);
 const oldHomeClinical=views.home;views.home=()=>oldHomeClinical().replace('data-go="logbook">Jelajahi','data-go="instruments">Jelajahi').replace('<button class="btn" data-go="sop">Mulai dari SOP</button>','<button class="btn" data-go="assessment">Mulai pengkajian</button>').replace('<button class="btn light" data-go="logbook">Buka logbook</button>','<button class="btn light" data-go="instruments">17 instrumen asli</button>');
@@ -606,7 +606,7 @@ function enhanceV5(){if(page==='instruments'){
 }
 const renderBeforeV5=render;render=function(){renderBeforeV5();enhanceV5()};
 pages.splice(pages.findIndex(p=>p[0]==='instruments')+1,0,['interpretation','Ringkasan hasil instrumen']);
-document.title='Askep Gerontik Digital — Preview V5 Interpretasi Jelas';
+document.title='Askep Gerontik Terintegrasi — V6';
 
 // V6: formative competency assessment, role-specific dashboards, interface review.
 function competencyRecords(){if(!Array.isArray(db.competency))db.competency=[];return db.competency}
@@ -641,7 +641,7 @@ const renderBeforeV6=render;render=function(){competencyRecords();State=initClin
 pages.splice(pages.findIndex(p=>p[0]==='logbook')+1,0,['competency','Form kompetensi']);
 const goBeforeV6=go;go=function(p){if(p!==page)competencyEditing=null;goBeforeV6(p);};
 $('#role').onchange=()=>{competencyEditing=null;render()};
-document.title='Askep Gerontik Digital — Preview V6 Kompetensi & Dashboard Biru';
+document.title='Askep Gerontik Terintegrasi — V6';
 
 const pdfBeforeV6=geroPdfDefinition;geroPdfDefinition=function(root,info={}){let d=pdfBeforeV6(root,info);function inset(nodes){for(let node of nodes){if(node.stack)inset(node.stack);if(node.text&&node.alignment!=='center'){let m=node.margin||[0,0,0,0];if(typeof m==='number')m=[m,m,m,m];if(m.length===2)m=[m[0],m[1],m[0],m[1]];node.margin=[m[0],m[1],m[2]+3,m[3]];}}}inset(d.content);return d;};
 
