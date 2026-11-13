@@ -1,9 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.117.1';
 import { portfolioMissing as finalMissing, weekProgress } from './progress.ts';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
-import './practice-schedule.js';
+import * as practice from './practice-schedule.ts';
 import {schema as analysisSchema} from './analysis-schema.ts';
-const practice=(globalThis as any).GerontikPractice;
 const PERIOD='uji-v7';
 const STAFF:Record<string,{name:string,roles:string[]}>= {
  'andazmortin@gmail.com':{name:'Amzal Mortin Andas',roles:['super_admin','lecturer']},
@@ -49,7 +48,7 @@ async function scopedRoster(p:any,period:string,id?:string){
 }
 async function fetchDocument(r:any){return r.auth_user_id?await must(db.from('gerontik_learning_documents').select('*').eq('owner_id',r.auth_user_id).eq('period',r.period).maybeSingle()):null;}
 function checkedRows(value:any){
- if(!Array.isArray(value)||!value.length||value.length>1000)throw new HttpError(400,'Impor memerlukan 1–1000 peserta.');
+ if(!Array.isArray(value)||!value.length||value.length>1000)throw new HttpError(400,'Impor memerlukan 1-1000 peserta.');
  const nims=new Set<string>(),emails=new Set<string>();
  return value.map((r:any,i:number)=>{
   if(!isObject(r))throw new HttpError(400,'Baris '+(i+2)+' tidak valid.');
@@ -75,7 +74,7 @@ function validateReview(doc:any,p:any){
   const scores=p.scores||detail.scores||[];
   if(!text(detail.observed,10)||detail.observed<record.date||detail.observed>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Jakarta'}))throw new HttpError(400,'Tanggal observasi tidak valid.');
   if(p.status==='Terverifikasi'){
-   if(!Array.isArray(scores)||scores.length!==(method==='EBN'?6:7)||scores.some((s:any)=>s===' '||s===''||!(s==='NA'||(/^[0-4]$/.test(String(s))))))throw new HttpError(400,'Lengkapi seluruh skor rubrik 0–4 atau N/A.');
+   if(!Array.isArray(scores)||scores.length!==(method==='EBN'?6:7)||scores.some((s:any)=>s===' '||s===''||!(s==='NA'||(/^[0-4]$/.test(String(s))))))throw new HttpError(400,'Lengkapi seluruh skor rubrik 0-4 atau N/A.');
    const relevant=scores.filter((s:any)=>s!=='NA');
    if(!relevant.length||scores.includes('NA')&&!text(detail.naReason,1500))throw new HttpError(400,'N/A memerlukan alasan dan setidaknya satu aspek bernilai.');
    if(!['Kompeten dalam supervisi','Perlu perbaikan','Tidak dapat dinilai'].includes(detail.outcome))throw new HttpError(400,'Hasil penilaian tidak valid.');
@@ -127,7 +126,7 @@ Deno.serve(async(req)=>{
    if(action==='notificationContact'){const contact=await must<any>(db.from('gerontik_notification_contacts').select('email_enabled,whatsapp_phone,whatsapp_opt_in,consent_at').eq('owner_id',profile.userId).maybeSingle());return reply({status:'success',email:profile.email,contact:contact||{email_enabled:true,whatsapp_phone:'',whatsapp_opt_in:false}});}
    if(typeof p.emailEnabled!=='boolean'||typeof p.whatsappOptIn!=='boolean'||typeof p.phone!=='string')throw new HttpError(400,'Pengaturan kontak tidak valid.');
    let phone=p.phone.replace(/[\s()-]/g,'');if(phone.startsWith('08'))phone='+62'+phone.slice(1);else if(phone.startsWith('62'))phone='+'+phone;
-   if(phone&&!/^\+[1-9]\d{7,14}$/.test(phone)||p.whatsappOptIn&&!phone)throw new HttpError(400,'Gunakan nomor WhatsApp dengan kode negara, misalnya +62812…');
+   if(phone&&!/^\+[1-9]\d{7,14}$/.test(phone)||p.whatsappOptIn&&!phone)throw new HttpError(400,'Gunakan nomor WhatsApp dengan kode negara, misalnya +62812.');
    await must(db.from('gerontik_notification_contacts').upsert({owner_id:profile.userId,email_enabled:p.emailEnabled,whatsapp_phone:phone,whatsapp_opt_in:p.whatsappOptIn,consent_at:p.whatsappOptIn?new Date().toISOString():null,updated_at:new Date().toISOString()},{onConflict:'owner_id'}));return reply({status:'success'});
   }
   if(action==='reminderChannels'||action==='reminderDeliveries'){
@@ -348,4 +347,3 @@ Deno.serve(async(req)=>{
   throw new HttpError(400,'Aksi tidak dikenal.');
  }catch(e){if(e instanceof HttpError)return reply({status:'error',message:e.message},e.status);console.error('learning api',e instanceof Error?e.name:'error');return reply({status:'error',message:'Permintaan belum berhasil. Data server tidak dinyatakan tersimpan.'},500);}
 });
-
