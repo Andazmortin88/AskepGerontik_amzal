@@ -1,28 +1,28 @@
 const fs=require('node:fs'),path=require('node:path'),{full}=require('./tests/weekly-fixture.cjs');
 const read=p=>fs.readFileSync(path.join(__dirname,p),'utf8');
 const script=s=>'<script>'+s.replace(/<\/script/gi,'<\\/script')+'</script>';
-const demo=full();delete demo.clinicalState.asuhan[2].evaluasi;demo.clinicalState.h2t[2]={};delete demo.clinicalState.instrumen[2].barthel.b1;
+const demo=full();demo.clinicalState.instrumenRaw={1:{},2:{}};demo.clinicalState.mahasiswa={nama:'Mahasiswa Simulasi 001',nim:'SIM001',status:'Profesi Ners',kelas:'Kelompok 1'};delete demo.clinicalState.asuhan[2].evaluasi;demo.clinicalState.h2t[2]={};delete demo.clinicalState.instrumen[2].barthel.b1;
 const runtime=`
 const DEMO_STATE=${JSON.stringify(demo)};
-let demoRole='student',selected=0,ws,docRev=1,attempts=[],reviews=[],reminders=[];
+let demoRole='student',demoSelected=0,ws,docRev=1,attempts=[],reviews=[],reminders=[];
 const copy=x=>JSON.parse(JSON.stringify(x)),roster=Array.from({length:100},(_,i)=>({id:'demo-'+i,name:'Mahasiswa Simulasi '+String(i+1).padStart(3,'0'),nim:'SIM'+String(i+1).padStart(3,'0'),group_name:'Kelompok '+(1+Math.floor(i/25)),auth_user_id:i%7===0?null:'owner-'+i}));
-db=copy(DEMO_STATE);State=db.clinicalState;
+db={...empty(),...copy(DEMO_STATE)};State=db.clinicalState;
 for(const id of ['monitoring','incomplete','submissions','reminders','submission','feedback'])views[id]=()=>'';
 views.archive=()=>'<div class="card"><h1>Periksa PDF & komentar</h1><p>Preview ini menggunakan data simulasi tanpa berkas pasien. Pada draf aplikasi, dosen dapat membuka PDF di halaman ini dan menyimpan komentar untuk setiap berkas.</p></div>';
 const baseRender=render;render=function(){baseRender();ws?.afterRender();};
 save=function(){docRev++;return true;};clinicalSave=function(){db.clinicalState=State;save();};
 async function demoApi(action,p={}){
- const mine=()=>attempts.filter(s=>s.roster===roster[selected].id);
- if(action==='monitoring')return {students:roster.map((r,i)=>{const state=i===selected?db:i%7===0?{}:i%3===0?DEMO_STATE:{};return {id:r.id,name:r.name,nim:r.nim,group:r.group_name,linked:!!r.auth_user_id,updatedAt:i%7===0?null:'2026-11-13T08:30:00Z',weeks:[1,2].map(w=>({...GerontikProgress.weekProgress(state,w),submission:attempts.filter(s=>s.roster===r.id).find(s=>s.week===w)||null}))};})};
- if(action==='weeklyStatus')return {submissions:mine(),reviews:reviews.filter(r=>mine().some(s=>s.id===r.submission_id)),reminders:reminders.filter(r=>r.roster===roster[selected].id)};
- if(action==='submitWeek'){if(demoRole!=='student')throw Error('Hanya mahasiswa');if(!GerontikProgress.weekProgress(db,p.week).complete)throw Error('Belum lengkap');attempts.unshift({id:crypto.randomUUID(),roster:roster[selected].id,week:p.week,attempt:mine().filter(s=>s.week===p.week).length+1,document_revision:docRev,status:'submitted',review_revision:0,created_at:new Date().toISOString(),snapshot:copy(db)});return {status:'success'};}
+ const mine=()=>attempts.filter(s=>s.roster===roster[demoSelected].id);
+ if(action==='monitoring')return {students:roster.map((r,i)=>{const state=i===demoSelected?db:i%7===0?{}:i%3===0?DEMO_STATE:{};return {id:r.id,name:r.name,nim:r.nim,group:r.group_name,linked:!!r.auth_user_id,updatedAt:i%7===0?null:'2026-11-13T08:30:00Z',weeks:[1,2].map(w=>({...GerontikProgress.weekProgress(state,w),submission:attempts.filter(s=>s.roster===r.id).find(s=>s.week===w)||null}))};})};
+ if(action==='weeklyStatus')return {submissions:mine(),reviews:reviews.filter(r=>mine().some(s=>s.id===r.submission_id)),reminders:reminders.filter(r=>r.roster===roster[demoSelected].id)};
+ if(action==='submitWeek'){if(demoRole!=='student')throw Error('Hanya mahasiswa');if(!GerontikProgress.weekProgress(db,p.week).complete)throw Error('Belum lengkap');attempts.unshift({id:crypto.randomUUID(),roster:roster[demoSelected].id,week:p.week,attempt:mine().filter(s=>s.week===p.week).length+1,document_revision:docRev,status:'submitted',review_revision:0,created_at:new Date().toISOString(),snapshot:copy(db)});return {status:'success'};}
  if(action==='loadSubmission'){const s=attempts.find(s=>s.id===p.submissionId);if(!s)throw Error('Kiriman simulasi tidak tersedia');return {submission:s,student:roster.find(r=>r.id===s.roster).name,reviews:reviews.filter(r=>r.submission_id===s.id)};}
  if(action==='reviewWeek'){if(demoRole!=='teacher')throw Error('Hanya dosen');const s=attempts.find(s=>s.id===p.submissionId);s.status=p.decision;s.review_revision++;reviews.unshift({submission_id:s.id,decision:p.decision,comment:p.comment,created_at:new Date().toISOString()});return {status:'success'};}
  if(action==='sendReminder'){reminders.unshift({id:crypto.randomUUID(),roster:p.rosterId,week:p.week,message:p.message,created_at:new Date().toISOString()});return {status:'success'};}
  if(action==='readReminder'){reminders.find(r=>r.id===p.reminderId).read_at=new Date().toISOString();return {status:'success'};}
  throw Error('Fitur tidak tersedia pada preview offline');
 }
-function connectPreview(){ws?.dispose();document.querySelector('#role').value=demoRole;ws=GerontikRoleWorkspace.connect({api:demoApi,profile:()=>({roles:[demoRole==='teacher'?'lecturer':'student']}),roster:()=>roster[selected],state:()=>db,document:()=>({revision:docRev,status:'DRAFT'}),page:()=>page,week:()=>clinicalWeek,module:()=>clinicalModule,render:()=>render(),go:p=>go(p),openWeek:(w,p,m,i)=>{clinicalWeek=w;if(m)clinicalModule=m;if(i)clinicalInstrument=i;go(p);},flush:async()=>{},notice:toast,ask:async({message})=>confirm(message),select:async id=>{selected=roster.findIndex(r=>r.id===id);db=copy(DEMO_STATE);State=db.clinicalState;}});page='dashboard';render();}
+function connectPreview(){ws?.dispose();document.querySelector('#role').value=demoRole;ws=GerontikRoleWorkspace.connect({api:demoApi,profile:()=>({roles:[demoRole==='teacher'?'lecturer':'student']}),roster:()=>roster[demoSelected],state:()=>db,document:()=>({revision:docRev,status:'DRAFT'}),page:()=>page,week:()=>clinicalWeek,module:()=>clinicalModule,render:()=>render(),go:p=>go(p),openWeek:(w,p,m,i)=>{clinicalWeek=w;if(m)clinicalModule=m;if(i)clinicalInstrument=i;go(p);},flush:async()=>{},notice:toast,ask:async({message})=>confirm(message),select:async id=>{demoSelected=roster.findIndex(r=>r.id===id);db={...empty(),...copy(DEMO_STATE)};State=db.clinicalState;}});page='dashboard';render();}
 document.querySelector('#previewRole').onchange=e=>{demoRole=e.target.value;connectPreview();};
 attempts.push({id:'demo-submission',roster:roster[1].id,week:1,attempt:1,document_revision:1,status:'submitted',review_revision:0,created_at:'2026-11-13T08:30:00Z',snapshot:copy(DEMO_STATE)});
 connectPreview();
