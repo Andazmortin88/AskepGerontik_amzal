@@ -59,9 +59,11 @@ Antrean berstatus blocked tidak diaktifkan ulang otomatis ketika konfigurasi/kon
 
 ## Rekomendasi sebelum rilis
 
-- Tentukan tenggat tiap minggu agar status terlambat berdasarkan tanggal yang benar.
-- Sediakan filter belum mulai/tidak ada aktivitas tersimpan untuk tindak lanjut dosen.
-- Ikat PDF ke ID dan revisi kiriman mingguan sebelum menganggap review berkas sebagai persetujuan tugas yang sama.
+- Uji pengaturan tenggat Jumat yang kini tersedia pada akun dosen/superadmin. Belum ada praktik yang diaktifkan otomatis.
+- Uji filter belum mulai/tidak aktif yang kini tersedia; hari kerja dan jadwal menjadi dasar penanda.
+- Uji pengaitan PDF ke ID/revisi kiriman yang kini disiapkan. Review berkas tetap terpisah dari persetujuan tugas.
 - Tambahkan webhook terverifikasi jika dibutuhkan bukti delivered/read. Saat ini status accepted hanya menyatakan provider menerima permintaan.
 
 Rujukan primer: https://resend.com/docs/dashboard/emails/idempotency-keys ; https://resend.com/docs/api-reference/emails/send-email ; https://business.whatsapp.com/policy ; https://supabase.com/docs/guides/functions/schedule-functions .
+
+WhatsApp Business API belum dimiliki pengguna. Opsi pengiriman WhatsApp dinonaktifkan ketika layanan belum dikonfigurasi; email menjadi prioritas aktivasi. Layanan email pengirim juga belum dihubungkan/dijalankan pada pekerjaan ini.

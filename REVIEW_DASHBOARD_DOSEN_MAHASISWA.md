@@ -33,7 +33,7 @@ Warna court blue, putih, dan bright yellow dipertahankan sebagai identitas; bagi
 - Simulasi 100 pemilik dokumen tidak membuktikan 100 sesi Google yang benar-benar login atau ketahanan Edge Function produksi.
 - `backend/weekly-migration.sql` adalah kandidat SQL untuk satu transaksi, **belum dieksekusi pada database mana pun**. Pemeriksaan sintaks, perilaku konkurensi SQL sesungguhnya, grants/RLS, kapasitas, dan rollback harus diuji pada staging.
 - Draf API belum dipasang. Aplikasi aktif masih memakai versi sebelumnya; perbaikan validasi ini belum melindungi produksi sampai rilis yang disetujui dilakukan.
-- PDF dan persetujuan kiriman mingguan adalah dua objek review berbeda. PDF yang diunggah klien tidak dianggap sebagai bukti bahwa seluruh isinya sama dengan snapshot kiriman. Dosen dapat memeriksa snapshot dan berkas secara terpisah; pengikatan PDF otomatis ke kiriman tertentu masih merupakan rekomendasi lanjutan.
+- PDF dan persetujuan kiriman mingguan adalah dua objek review berbeda. PDF yang diunggah klien tidak dianggap sebagai bukti bahwa seluruh isinya sama dengan snapshot kiriman. Dosen dapat memeriksa snapshot dan berkas secara terpisah; draf lanjutan sudah mengikat ID/revisi PDF ke snapshot kiriman; lihat JADWAL_JUMAT_DAN_PDF.md. Pengaitan metadata tidak mengesahkan seluruh isi berkas yang dibuat klien.
 - Draf lanjutan menyediakan antrean email/WhatsApp dan contoh scheduler. Pengiriman nyata belum diaktifkan; belum ada email/WhatsApp ke mahasiswa. Lihat SETUP_EMAIL_WHATSAPP.md untuk konfigurasi, persetujuan nomor, template, dan batas status pengiriman.
 - Preview menggunakan peserta dan temuan simulasi. Pergantian peran pada preview adalah kontrol demonstrasi; aplikasi autentikasi memakai peran server.
 
@@ -49,7 +49,7 @@ Warna court blue, putih, dan bright yellow dipertahankan sebagai identitas; bagi
 
 Prioritas berikutnya adalah staging dengan dua peran nyata: kirim minggu 1, cegah perubahan minggu 1, lanjutkan minggu 2, minta revisi, kirim ulang, setujui, dan ulangi dengan dua tab/perangkat serta koneksi terputus. Uji pula peserta tanpa login, dosen tanpa penugasan, dosen lain, PDF lama, dan dokumen FINAL lama. Jangan mengganti status FINAL lama secara otomatis.
 
-Setelah itu lakukan review visual desktop/mobile, keyboard, pembesaran 200%, pembaca PDF, serta uji beban backend yang terukur. Tetapkan tanggal praktik dan tenggat sebelum menyebut mahasiswa “terlambat”; tampilan saat ini hanya melaporkan progres dan aktivitas tersimpan.
+Setelah itu lakukan review visual desktop/mobile, keyboard, pembesaran 200%, pembaca PDF, serta uji beban backend yang terukur. Tanggal praktik/tenggat kini dapat diatur dosen atau superadmin; belum ada tanggal yang diaktifkan otomatis. Label terlambat dihitung dari waktu server dan tenggat yang dibekukan pada setiap kiriman. Lihat JADWAL_JUMAT_DAN_PDF.md untuk detail filter, pengaturan, dan PDF.
 
 Rekomendasi akademik: persetujuan dosen harus tetap terpisah dari angka kelengkapan. Alasan instrumen/pemeriksaan yang tidak dapat dilakukan harus dinilai pembimbing; jangan mengisi skor atau temuan normal otomatis untuk mengejar 100%.
 

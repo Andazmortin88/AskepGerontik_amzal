@@ -1,6 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.117.1';
 import { portfolioMissing as finalMissing, weekProgress } from './progress.ts';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
+import './practice-schedule.js';
+const practice=(globalThis as any).GerontikPractice;
 const PERIOD='uji-v7';
 const STAFF:Record<string,{name:string,roles:string[]}>= {
  'andazmortin@gmail.com':{name:'Amzal Mortin Andas',roles:['super_admin','lecturer']},
@@ -136,8 +138,15 @@ Deno.serve(async(req)=>{
    return reply({status:'success',deliveries:jobs.map(j=>({...j,student:roster.find(r=>r.id===reminders.find(x=>x.id===j.reminder_id)?.roster_id)?.name||'Mahasiswa'}))});
   }
 
+  if(action==='setPracticeSchedule'){
+   if(!isLecturer(profile))throw new HttpError(403,'Pengaturan jadwal hanya untuk dosen atau superadmin.');
+   if(typeof p.startDate!=='string'||typeof p.enabled!=='boolean'||!Number.isInteger(p.inactiveDays)||p.inactiveDays<1||p.inactiveDays>10||!Array.isArray(p.targets)||!p.targets.length||p.targets.length>1000||p.targets.some((r:any)=>!uuid(r.roster_id)||!Number.isInteger(r.expected_revision)||r.expected_revision<0)||new Set(p.targets.map((r:any)=>r.roster_id)).size!==p.targets.length)throw new HttpError(400,'Pilih jadwal dan peserta yang valid.');
+   try{practice.deadlines({enabled:true,start_date:p.startDate});}catch{throw new HttpError(400,'Tanggal mulai harus hari Senin yang valid.');}
+   const allowed=await scopedRoster(profile,period);if(p.targets.some((r:any)=>!allowed.some(a=>a.id===r.roster_id)))throw new HttpError(403,'Jadwal hanya dapat diatur untuk peserta bimbingan sendiri.');
+   return rpcReply(await must(db.rpc('gerontik_set_practice_schedule',{p_actor:profile.userId,p_targets:p.targets,p_start:p.startDate,p_enabled:p.enabled,p_inactive:p.inactiveDays})));
+  }
   if(action==='loadSubmission'){
-   if(!isLecturer(profile)||!uuid(p.rosterId)||!uuid(p.submissionId))throw new HttpError(403,'Pemeriksaan hanya untuk dosen.');
+   if(!uuid(p.submissionId)||isLecturer(profile)&&!uuid(p.rosterId)||!isLecturer(profile)&&!profile.roles.includes('student'))throw new HttpError(403,'Kiriman tidak tersedia untuk akun ini.');
    const roster=await scopedRoster(profile,period,p.rosterId);if(roster.length!==1)throw new HttpError(404,'Peserta tidak tersedia.');
    const submission=await must<any>(db.from('gerontik_weekly_submissions').select('*').eq('id',p.submissionId).eq('owner_id',roster[0].auth_user_id).eq('period',period).maybeSingle());
    if(!submission)throw new HttpError(404,'Kiriman tidak tersedia.');
@@ -154,18 +163,19 @@ Deno.serve(async(req)=>{
     const students=[];
     // Bounded state batches; raw clinical values never leave this summary endpoint.
     for(let i=0;i<roster.length;i+=5){const batch=roster.slice(i,i+5),ids=batch.map(r=>r.auth_user_id).filter(Boolean);
+     const schedules=await must<any[]>(db.from('gerontik_roster_schedules').select('roster_id,start_date,enabled,inactive_days,revision').in('roster_id',batch.map(r=>r.id)));
      const docs=ids.length?await must<any[]>(db.from('gerontik_learning_documents').select('owner_id,state,revision,status,updated_at').eq('period',period).in('owner_id',ids)):[];
-     const submissions=ids.length?await must<any[]>(db.from('gerontik_weekly_submissions').select('id,owner_id,week,status,attempt,review_revision,created_at,document_revision').eq('period',period).in('owner_id',ids).order('attempt',{ascending:false})):[];
-     for(const r of batch){const d=docs.find(x=>x.owner_id===r.auth_user_id);students.push({id:r.id,name:r.name,nim:r.nim,group:r.group_name,linked:!!r.auth_user_id,updatedAt:d?.updated_at||null,revision:d?.revision||0,documentStatus:d?.status||'EMPTY',weeks:[1,2].map(week=>{const progress=weekProgress(d?.state||{},week);return {...progress,missing:progress.missing.map(x=>({label:x.label,page:x.page,week:x.week,module:x.module,field:x.field})),submission:submissions.find(s=>s.owner_id===r.auth_user_id&&s.week===week)||null};})});}
+     const submissions=ids.length?await must<any[]>(db.from('gerontik_weekly_submissions').select('id,owner_id,week,status,attempt,review_revision,created_at,document_revision,due_at,is_late').eq('period',period).in('owner_id',ids).order('attempt',{ascending:false})):[];
+     for(const r of batch){const d=docs.find(x=>x.owner_id===r.auth_user_id),schedule=schedules.find(s=>s.roster_id===r.id)||null;students.push({id:r.id,name:r.name,nim:r.nim,group:r.group_name,schedule,linked:!!r.auth_user_id,updatedAt:d?.updated_at||null,revision:d?.revision||0,documentStatus:d?.status||'EMPTY',weeks:[1,2].map(week=>{const progress=weekProgress(d?.state||{},week);return {...progress,missing:progress.missing.map(x=>({label:x.label,page:x.page,week:x.week,module:x.module,field:x.field})),submission:submissions.find(s=>s.owner_id===r.auth_user_id&&s.week===week)||null};})});}
     }
     return reply({status:'success',students});
    }
    if(action==='weeklyStatus'){
     if(roster.length!==1)throw new HttpError(400,'Pilih satu peserta.');
-    const submissions=owners.length?await must<any[]>(db.from('gerontik_weekly_submissions').select('id,week,attempt,document_revision,status,review_revision,created_at,updated_at,progress').eq('period',period).in('owner_id',owners).order('attempt',{ascending:false})):[];
+    const submissions=owners.length?await must<any[]>(db.from('gerontik_weekly_submissions').select('id,week,attempt,document_revision,status,review_revision,created_at,updated_at,progress,due_at,is_late').eq('period',period).in('owner_id',owners).order('attempt',{ascending:false})):[];
     const reviews=submissions.length?await must<any[]>(db.from('gerontik_weekly_reviews').select('id,submission_id,decision,comment,created_at').in('submission_id',submissions.map(s=>s.id)).order('created_at',{ascending:false})):[];
     const reminders=await must<any[]>(db.from('gerontik_weekly_reminders').select('id,week,message,read_at,created_at').eq('roster_id',roster[0].id).order('created_at',{ascending:false}).limit(50));
-    return reply({status:'success',submissions,reviews,reminders});
+    const schedule=await must<any>(db.from('gerontik_roster_schedules').select('start_date,enabled,inactive_days,revision').eq('roster_id',roster[0].id).maybeSingle());return reply({status:'success',submissions,reviews,reminders,schedule});
    }
    if(action==='readReminder'){
     if(!uuid(p.reminderId)||roster.length!==1)throw new HttpError(400,'Pengingat tidak valid.');
@@ -213,27 +223,27 @@ Deno.serve(async(req)=>{
   }
   if(['uploadPdf','listPdf','openPdf','reviewPdf'].includes(action)){
    const roster=await scopedRoster(profile,period),owners=roster.map(r=>r.auth_user_id).filter(Boolean);
-   const meta=(x:any)=>({id:x.id,owner_id:x.owner_id,period:x.period,file_size:x.file_size,document_revision:x.document_revision,created_at:x.created_at,review_revision:x.review_revision,review_status:x.review_status,feedback:x.feedback,student:roster.find(r=>r.auth_user_id===x.owner_id)?.name||'Mahasiswa'});
+   const meta=(x:any)=>({id:x.id,submission_id:x.submission_id||null,owner_id:x.owner_id,period:x.period,file_size:x.file_size,document_revision:x.document_revision,created_at:x.created_at,review_revision:x.review_revision,review_status:x.review_status,feedback:x.feedback,student:roster.find(r=>r.auth_user_id===x.owner_id)?.name||'Mahasiswa'});
    if(action==='listPdf'){
     if(!owners.length)return reply({status:'success',reports:[],hasMore:false});
     const offset=Math.max(0,Math.trunc(Number(p.offset)||0));
     const reports=await must<any[]>(db.from('gerontik_learning_pdf').select('*').eq('period',period).in('owner_id',owners).order('created_at',{ascending:false}).order('id').range(offset,offset+49));
-    return reply({status:'success',reports:reports.map(meta),hasMore:reports.length===50});
+    const bound=reports.map(r=>r.submission_id).filter(Boolean),submissions=bound.length?await must<any[]>(db.from('gerontik_weekly_submissions').select('id,week,attempt,is_late').eq('period',period).in('id',bound)):[];return reply({status:'success',reports:reports.map(r=>({...meta(r),submission:submissions.find(s=>s.id===r.submission_id)||null})),hasMore:reports.length===50});
    }
    if(action==='uploadPdf'){
     if(!profile.roles.includes('student')||isLecturer(profile))throw new HttpError(403,'Hanya mahasiswa dapat mengirim PDF miliknya.');
-    if(!uuid(p.reportId)||!Number.isInteger(p.expectedRevision)||!(uploadFile instanceof File)||uploadFile.type!=='application/pdf'||uploadFile.size<8||uploadFile.size>15728640)throw new HttpError(400,'Pilih PDF maksimal 15 MB dan revisi dokumen yang valid.');
+    if(!uuid(p.reportId)||!uuid(p.submissionId)||!Number.isInteger(p.expectedRevision)||!(uploadFile instanceof File)||uploadFile.type!=='application/pdf'||uploadFile.size<8||uploadFile.size>15728640)throw new HttpError(400,'Pilih PDF maksimal 15 MB dan revisi dokumen yang valid.');
     const bytes=new Uint8Array(await uploadFile.arrayBuffer()),decode=new TextDecoder();
     if(decode.decode(bytes.subarray(0,5))!=='%PDF-'||!decode.decode(bytes.subarray(Math.max(0,bytes.length-1024))).includes('%%EOF'))throw new HttpError(400,'Struktur PDF tidak valid.');
     const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
     const prior=await must<any>(db.from('gerontik_learning_pdf').select('*').eq('id',p.reportId).maybeSingle());
-    if(prior){if(prior.owner_id!==profile.userId||prior.period!==period||prior.sha256!==hash||prior.document_revision!==p.expectedRevision)throw new HttpError(409,'ID laporan sudah dipakai.');return reply({status:'success',report:meta(prior)});}
+    if(prior){if(prior.owner_id!==profile.userId||prior.period!==period||prior.sha256!==hash||prior.document_revision!==p.expectedRevision||prior.submission_id!==p.submissionId)throw new HttpError(409,'ID laporan sudah dipakai.');return reply({status:'success',report:meta(prior)});}
     const own=roster.find(r=>r.auth_user_id===profile.userId);if(!own)throw new HttpError(403,'Peserta belum aktif.');
-    const doc=await fetchDocument(own);if(!doc||doc.revision!==p.expectedRevision)throw new HttpError(409,'Simpan dan muat revisi terbaru sebelum membuat PDF.');
+    const submission=await must<any>(db.from('gerontik_weekly_submissions').select('id,document_revision').eq('id',p.submissionId).eq('owner_id',profile.userId).eq('period',period).maybeSingle());if(!submission||submission.document_revision!==p.expectedRevision)throw new HttpError(409,'PDF harus terkait revisi kiriman mingguan milik Anda.');
     const path='reports/'+profile.userId+'/'+p.reportId+'.pdf';
     const {error:upError}=await db.storage.from('gerontik-learning-pdf').upload(path,bytes,{contentType:'application/pdf',upsert:false});
     if(upError)throw new HttpError(409,'Pengiriman PDF belum selesai. Periksa daftar dan coba kembali.');
-    try{const saved=await must<any>(db.from('gerontik_learning_pdf').insert({id:p.reportId,owner_id:profile.userId,period,path,sha256:hash,file_size:bytes.length,document_revision:p.expectedRevision}).select('*').single());return reply({status:'success',report:meta(saved)});}catch(e){await db.storage.from('gerontik-learning-pdf').remove([path]);throw e;}
+    try{const saved=await must<any>(db.from('gerontik_learning_pdf').insert({id:p.reportId,owner_id:profile.userId,period,path,sha256:hash,file_size:bytes.length,document_revision:p.expectedRevision,submission_id:p.submissionId}).select('*').single());return reply({status:'success',report:meta(saved)});}catch(e){await db.storage.from('gerontik-learning-pdf').remove([path]);throw e;}
    }
    if(!uuid(p.reportId))throw new HttpError(400,'ID laporan tidak valid.');
    const report=await must<any>(db.from('gerontik_learning_pdf').select('*').eq('id',p.reportId).eq('period',period).maybeSingle());
