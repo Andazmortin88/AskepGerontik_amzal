@@ -3,6 +3,7 @@ const root=__dirname,sourcePath=process.argv[2]||path.join(root,'../v6/preview-v
 const html=fs.existsSync(sourcePath)?fs.readFileSync(sourcePath,'utf8'):null,blocks=html?[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)]:[['', '',fs.readFileSync(path.join(root,'v6-source/app.js'),'utf8')],[],['','',fs.readFileSync(path.join(root,'learning-v6-fonts.js'),'utf8')]];
 if(blocks.length!==3)throw Error('Inspect changed V6 source: expected app, PDF library and fonts.');
 let app=blocks[0][2];
+app=app.replace(/<details><summary>Evaluasi pengembangan untuk SATRIA<\/summary>[\s\S]*?<\/details>/g,'');
 function replace(old,next){if(!app.includes(old))throw Error('V6 integration marker changed: '+old.slice(0,80));app=app.replace(old,next);}
 replace("const KEY='gerontik_learning_preview_v3_20261112';", "const KEY='gerontik-v6-disabled-demo-cache';");
 replace("let db;try{db=JSON.parse(localStorage.getItem(KEY))||empty()}catch{db=empty()}","let db=empty();");

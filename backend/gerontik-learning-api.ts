@@ -119,6 +119,23 @@ Deno.serve(async(req)=>{
    const receipts=events.length?await must<any[]>(db.from('gerontik_learning_login_receipts').select('event_id').eq('reader_id',profile.userId).in('event_id',events.map(e=>e.id))):[];
    return reply({status:'success',events:events.map(e=>({...e,name:roster.find(r=>r.auth_user_id===e.auth_user_id)?.name||e.name,read:receipts.some(r=>r.event_id===e.id)}))});
   }
+  if(action==='notificationContact'||action==='saveNotificationContact'){
+   if(!profile.roles.includes('student')||isLecturer(profile))throw new HttpError(403,'Pengaturan ini untuk akun mahasiswa sendiri.');
+   if(action==='notificationContact'){const contact=await must<any>(db.from('gerontik_notification_contacts').select('email_enabled,whatsapp_phone,whatsapp_opt_in,consent_at').eq('owner_id',profile.userId).maybeSingle());return reply({status:'success',email:profile.email,contact:contact||{email_enabled:true,whatsapp_phone:'',whatsapp_opt_in:false}});}
+   if(typeof p.emailEnabled!=='boolean'||typeof p.whatsappOptIn!=='boolean'||typeof p.phone!=='string')throw new HttpError(400,'Pengaturan kontak tidak valid.');
+   let phone=p.phone.replace(/[\s()-]/g,'');if(phone.startsWith('08'))phone='+62'+phone.slice(1);else if(phone.startsWith('62'))phone='+'+phone;
+   if(phone&&!/^\+[1-9]\d{7,14}$/.test(phone)||p.whatsappOptIn&&!phone)throw new HttpError(400,'Gunakan nomor WhatsApp dengan kode negara, misalnya +62812…');
+   await must(db.from('gerontik_notification_contacts').upsert({owner_id:profile.userId,email_enabled:p.emailEnabled,whatsapp_phone:phone,whatsapp_opt_in:p.whatsappOptIn,consent_at:p.whatsappOptIn?new Date().toISOString():null,updated_at:new Date().toISOString()},{onConflict:'owner_id'}));return reply({status:'success'});
+  }
+  if(action==='reminderChannels'||action==='reminderDeliveries'){
+   if(!isLecturer(profile))throw new HttpError(403,'Menu ini untuk dosen.');
+   if(action==='reminderChannels')return reply({status:'success',enabled:Deno.env.get('REMINDER_SEND_ENABLED')==='true',emailConfigured:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('REMINDER_EMAIL_FROM')),whatsappConfigured:!!(Deno.env.get('WHATSAPP_ACCESS_TOKEN')&&Deno.env.get('WHATSAPP_PHONE_NUMBER_ID')&&Deno.env.get('WHATSAPP_REMINDER_TEMPLATE')&&Deno.env.get('WHATSAPP_GRAPH_VERSION'))});
+   const roster=await scopedRoster(profile,period),ids=roster.map(r=>r.id);if(!ids.length)return reply({status:'success',deliveries:[]});
+   const reminders=await must<any[]>(db.from('gerontik_weekly_reminders').select('id,roster_id,week,created_at').in('roster_id',ids).order('created_at',{ascending:false}).limit(50));
+   const jobs=reminders.length?await must<any[]>(db.from('gerontik_reminder_outbox').select('id,reminder_id,channel,status,attempts,error_code,created_at').in('reminder_id',reminders.map(r=>r.id)).order('created_at',{ascending:false})):[];
+   return reply({status:'success',deliveries:jobs.map(j=>({...j,student:roster.find(r=>r.id===reminders.find(x=>x.id===j.reminder_id)?.roster_id)?.name||'Mahasiswa'}))});
+  }
+
   if(action==='loadSubmission'){
    if(!isLecturer(profile)||!uuid(p.rosterId)||!uuid(p.submissionId))throw new HttpError(403,'Pemeriksaan hanya untuk dosen.');
    const roster=await scopedRoster(profile,period,p.rosterId);if(roster.length!==1)throw new HttpError(404,'Peserta tidak tersedia.');
@@ -156,6 +173,13 @@ Deno.serve(async(req)=>{
    }
    if(!uuid(p.operationId))throw new HttpError(400,'ID operasi tidak valid.');
    if(action==='sendReminder'){
+    if(p.channels!==undefined){
+     if(!Array.isArray(p.channels)||p.channels.length>2||p.channels.some((x:any)=>!['email','whatsapp'].includes(x))||roster.length!==1||![1,2].includes(p.week)||!text(p.message,1000))throw new HttpError(400,'Pilih peserta, minggu, kanal, dan pesan yang valid.');
+     const channels=[...new Set(p.channels)].sort();const result=await must<any>(db.rpc('gerontik_queue_reminder',{p_actor:profile.userId,p_roster:roster[0].id,p_week:p.week,p_message:text(p.message,1000),p_channels:channels,p_operation:p.operationId}));
+     if(result.status==='rate_limited')return reply({status:'rate_limited',message:'Pengingat untuk mahasiswa ini baru dikirim. Tunggu satu menit.'},429);
+     return rpcReply(result);
+    }
+
     if(roster.length!==1||![1,2].includes(p.week)||!text(p.message,1000))throw new HttpError(400,'Pilih peserta, minggu dan pesan.');
     const payload={roster_id:roster[0].id,actor_id:profile.userId,operation_id:p.operationId,week:p.week,message:text(p.message,1000)};
     const prior=await must<any>(db.from('gerontik_weekly_reminders').select('*').eq('actor_id',profile.userId).eq('operation_id',p.operationId).maybeSingle());

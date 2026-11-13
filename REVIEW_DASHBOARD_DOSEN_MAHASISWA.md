@@ -13,7 +13,7 @@ Status: **draf untuk ditinjau, belum dirilis**. Basis produksi: `692cba551a46f6d
 | PDF | Alur pembuatan dan arsip sebelumnya dipertahankan | Pembaca PDF dalam halaman dan kolom komentar per berkas |
 | Kulit/luka | Terintegrasi pada head-to-toe modul 11 | Terlihat dalam pengkajian dan salinan kiriman |
 
-Warna court blue, putih, dan bright yellow dipertahankan. Tipografi dashboard diperbesar, fokus keyboard diperjelas, tabel dapat digulir pada layar kecil, dan gerak progress bar mengikuti preferensi reduced motion.
+Warna court blue, putih, dan bright yellow dipertahankan sebagai identitas; bagian atas dashboard dan pita preview menggunakan biru langit sesuai revisi. Narasi SATRIA dihapus dari aplikasi. Tipografi dashboard diperbesar, fokus keyboard diperjelas, tabel dapat digulir pada layar kecil, dan gerak progress bar mengikuti preferensi reduced motion.
 
 ## Temuan penting dan perbaikan
 
@@ -34,7 +34,7 @@ Warna court blue, putih, dan bright yellow dipertahankan. Tipografi dashboard di
 - `backend/weekly-migration.sql` adalah kandidat SQL untuk satu transaksi, **belum dieksekusi pada database mana pun**. Pemeriksaan sintaks, perilaku konkurensi SQL sesungguhnya, grants/RLS, kapasitas, dan rollback harus diuji pada staging.
 - Draf API belum dipasang. Aplikasi aktif masih memakai versi sebelumnya; perbaikan validasi ini belum melindungi produksi sampai rilis yang disetujui dilakukan.
 - PDF dan persetujuan kiriman mingguan adalah dua objek review berbeda. PDF yang diunggah klien tidak dianggap sebagai bukti bahwa seluruh isinya sama dengan snapshot kiriman. Dosen dapat memeriksa snapshot dan berkas secara terpisah; pengikatan PDF otomatis ke kiriman tertentu masih merupakan rekomendasi lanjutan.
-- Pengingat hanya di dalam aplikasi. Tidak ada email/WhatsApp yang dikirim, jadwal pengingat otomatis, atau notifikasi perangkat.
+- Draf lanjutan menyediakan antrean email/WhatsApp dan contoh scheduler. Pengiriman nyata belum diaktifkan; belum ada email/WhatsApp ke mahasiswa. Lihat SETUP_EMAIL_WHATSAPP.md untuk konfigurasi, persetujuan nomor, template, dan batas status pengiriman.
 - Preview menggunakan peserta dan temuan simulasi. Pergantian peran pada preview adalah kontrol demonstrasi; aplikasi autentikasi memakai peran server.
 
 ## Cara meninjau
@@ -55,7 +55,7 @@ Rekomendasi akademik: persetujuan dosen harus tetap terpisah dari angka kelengka
 
 ## Berkas dan urutan build
 
-Jalankan `node build-learning-v6.cjs`, `node build-completion.cjs`, `node build-progress.cjs`, lalu `node build-review-preview.cjs`. Jalankan `node --test tests/*.test.cjs` setelahnya.
+Jalankan `node build-learning-v6.cjs`, `node build-completion.cjs`, `node build-progress.cjs`, `node build-reminder-delivery.cjs`, lalu `node build-review-preview.cjs`. Jalankan `node --test tests/*.test.cjs` setelahnya.
 
 Untuk staging yang telah disiapkan, kandidat perubahan database berada dalam satu berkas `backend/weekly-migration.sql`. API memerlukan `backend/gerontik-learning-api.ts` dan `backend/progress.ts`. Jangan memasang frontend draf terhadap API produksi lama.
 
