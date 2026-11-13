@@ -1,31 +1,23 @@
-> Pembaruan sesi berikutnya: lihat [AUDIT_MENUS_LANDING_20261113.md](AUDIT_MENUS_LANDING_20261113.md). Semua 19 menu mahasiswa/dosen dan 72 field head-to-toe pada kedua minggu sudah ditelusuri. Tautan UKOM dan rute sumber belajar sudah aktif. Preview landing premium tersedia di landing-v6-premium.html; karakter dan render Remotion belum selesai karena berkas sumber belum dapat diambil dan pemasangan renderer ditolak perangkat. Portal utama belum memakai preview tersebut. Checkpoint browser terakhir revisi 41. Lanjutkan tanpa mengisi ulang data.
+# Status aktif Askep Gerontik - 13 November 2026
 
-# Status aktif Askep Gerontik Digital
+Lanjutkan dari rilis ini. Jangan membangun ulang atau menimpa data mahasiswa.
 
-Diperbarui 13 November 2026 WIB. **Lanjutkan dari implementasi ini, jangan membangun ulang.**
+- Frontend V6 diterbitkan melalui PR #2: dashboard mahasiswa 18 menu dan dosen 11 menu, monitoring mingguan, isian belum lengkap, pengiriman/revisi, PDF dan ekspor analisis CSV.
+- Backend `gerontik-learning-api` versi **6 ACTIVE**, bundle SHA-256 `f4c5e3b4effe0605e4b22cf8dc375524a2c47802d125006cf5fa2dd516ab9dc7`, sama dengan kandidat yang diuji.
+- Database: migrasi additive `learning_weekly_deadlines_pdf_and_reminder_foundation` sudah diterapkan. Delapan kelompok uji nyata berhasil dan seluruh fixture di-rollback. Dokumen, roster, profil dan PDF lama tetap sama.
+- Verifikasi kode fungsional: commit `a6113c66636e3f6fb76808b622c3cd3f8ed2ad83`, Release QA run **43442139625** lulus. 143 tes, 18/11 menu Chromium PC/HP, landing 320-1440, PDF asli dan teksnya, unduh CSV dan penolakan akses anonim/Origin asing.
+- URL aplikasi: https://andazmortin88.github.io/AskepGerontik_amzal/portal.html
+- Status publikasi frontend definitif: https://github.com/Andazmortin88/AskepGerontik_amzal/pull/2 dan deployment GitHub Pages untuk commit merge tersebut.
+- Rincian hasil/batas: [RELEASE_VERIFICATION_20261113.md](RELEASE_VERIFICATION_20261113.md).
 
-## Checkpoint
-- V6 terintegrasi, 18 menu asli + Arsip PDF privat, dashboard mahasiswa/dosen autentik. Login portal mengarahkan ke V6. Portal manajemen tetap di portal.html?masuk=1&classic=1.
-- URL rilis: https://andazmortin88.github.io/AskepGerontik_amzal/learning-v6.html?rilis=20261113-v6
-- Rilis utama 13f45769df7b6b2791499a1597fafe3a334cbf72 berhasil GitHub Pages. Backend gerontik-learning-api versi 4 aktif.
-- Sumber V6 dan tema disimpan di v6-source/; node build-learning-v6.cjs dapat meregenerasi frontend tanpa berkas preview eksternal.
-- 64 tes lulus. Detail cakupan dan batas: AUDIT_V6_20261113.md.
-- Uji nyata: mahasiswa UJI0001 → kompetensi → simpan/reload → PDF privat → FINAL revisi 34 → dosen membaca/review → buka koreksi revisi 35 → mahasiswa menerima komentar dan mengajukan ulang.
-- Dokumen uji terakhir revisi 39 DRAFT, learningVersion 6. Dua catatan head-to-toe berbeda per minggu dan satu catatan kulit tersimpan; narasi fisik lama dipertahankan.
-- PDF 267007 byte, revisi sumber 33, review Perlu revisi, review_revision 1. Tetap menjadi arsip versi lama setelah dokumen diperbarui.
-- Amzal super admin + dosen; Indah dosen. Roster 100 dummy, periode uji-v7. Dua email mahasiswa uji ditautkan ke UJI0001/UJI0002; baru UJI0001 menjalani login/browser.
-- Tidak ada penghapusan/penimpaan arsip klinis lama. Data uji sintetis ditandai AUDIT, bukan nilai kompetensi nyata.
+## Pengaturan sebelum praktik sebenarnya
 
-## Keputusan penggunaan
-Siap untuk pilot terawasi pada periode uji, belum klaim peluncuran massal 100 Google login. Uji 100 pengguna yang lulus memakai transport/auth tiruan, tanpa panggilan produksi. Google dosen dan mahasiswa diuji bergantian, bukan sesi terisolasi serentak.
+Roster masih 100 peserta dummy, periode `uji-v7`. Dua akun uji sudah tertaut. Superadmin Amzal/Andaz dan dosen Indah tetap mengikuti peran server. Impor daftar resmi serta atur penugasan dan tanggal mulai melalui akun dosen/superadmin. Tidak ada tanggal praktik yang diaktifkan otomatis.
 
-## Yang belum selesai
-- Login UJI0002 dan Indah, isolasi dua akun serentak, beban produksi 100 pengguna.
-- Keamanan menyeluruh, kontras/aksesibilitas dan verifikasi konten klinis resmi.
-- Video sumber kedua dan jalur unggah PDF dari pemilih berkas; arsip langsung PDF hasil aplikasi telah berhasil.
-- Pemeriksaan individual semua 72 field V6, screenshot visual akhir dan pemuatan ulang terakhir.
-- Sambungan perangkat terputus setelah uji mobile 375 × 812. Reset viewport telah dicoba tetapi tidak mendapat konfirmasi; periksa/reset setelah tersambung. Jangan mengaku screenshot akhir tersimpan.
-- Jangan merge cabang/PR lama yang bisa menimpa main. Gunakan expected SHA saat update ref.
+Tenggat Jumat 23:59 WIB. Kiriman terlambat tetap diterima dengan label, dan riwayat tenggat tidak dihitung ulang ketika jadwal diubah. Persetujuan dosen berbeda dengan persentase kelengkapan.
 
-## Langkah lanjutan
-Hubungkan kembali perangkat, buka URL rilis di atas, lanjutkan pengujian tersisa. Dokumen uji dan review sudah berada di Supabase; jangan memasukkan ulang data dari awal. Gunakan AUDIT_V6_20261113.md sebagai bukti penerimaan terbaru. Catatan audit/status lama merupakan riwayat, bukan kondisi terkini.
+Pengingat di aplikasi tersedia. Email/WhatsApp otomatis **belum aktif**: pengirim email terverifikasi, kredensial dan template WhatsApp belum tersedia. Jangan mengaktifkan worker/cron atau menyatakan pesan sudah terkirim sebelum konfigurasi dan uji pengiriman yang disetujui.
+
+Belum ada uji 100 login Google nyata bersamaan/load test produksi. Uji 100 akun menggunakan transport sintetis. Lakukan pilot bertahap sebelum kelas besar. Video Remotion karakter Andaz belum dirender; landing memakai ilustrasi lansia dan gerak CSS.
+
+Baseline rollback: frontend commit `692cba551a46f6df6688b2fc9f44a7f42b114f43`, Edge versi 5. Pertahankan seluruh data dan tabel baru saat rollback kode.
