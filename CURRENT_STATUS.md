@@ -1,3 +1,5 @@
+> Pembaruan sesi berikutnya: lihat [AUDIT_MENUS_LANDING_20261113.md](AUDIT_MENUS_LANDING_20261113.md). Semua 19 menu mahasiswa/dosen dan 72 field head-to-toe pada kedua minggu sudah ditelusuri. Tautan UKOM dan rute sumber belajar sudah aktif. Preview landing premium tersedia di landing-v6-premium.html; karakter dan render Remotion belum selesai karena berkas sumber belum dapat diambil dan pemasangan renderer ditolak perangkat. Portal utama belum memakai preview tersebut. Checkpoint browser terakhir revisi 41. Lanjutkan tanpa mengisi ulang data.
+
 # Status aktif Askep Gerontik Digital
 
 Diperbarui 13 November 2026 WIB. **Lanjutkan dari implementasi ini, jangan membangun ulang.**

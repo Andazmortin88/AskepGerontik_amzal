@@ -1,0 +1,1 @@
+{"private":true,"name":"askep-gerontik-motion","version":"1.0.0","scripts":{"render":"node render.mjs"},"dependencies":{"@remotion/bundler":"4.0.502","@remotion/renderer":"4.0.502","@remotion/gif":"4.0.502","remotion":"4.0.502","react":"19.0.0","react-dom":"19.0.0"}}
