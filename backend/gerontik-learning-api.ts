@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.117.1';
-import { finalMissing } from './completion.ts';
+import { portfolioMissing as finalMissing, weekProgress } from './progress.ts';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
 const PERIOD='uji-v7';
 const STAFF:Record<string,{name:string,roles:string[]}>= {
@@ -119,6 +119,66 @@ Deno.serve(async(req)=>{
    const receipts=events.length?await must<any[]>(db.from('gerontik_learning_login_receipts').select('event_id').eq('reader_id',profile.userId).in('event_id',events.map(e=>e.id))):[];
    return reply({status:'success',events:events.map(e=>({...e,name:roster.find(r=>r.auth_user_id===e.auth_user_id)?.name||e.name,read:receipts.some(r=>r.event_id===e.id)}))});
   }
+  if(action==='loadSubmission'){
+   if(!isLecturer(profile)||!uuid(p.rosterId)||!uuid(p.submissionId))throw new HttpError(403,'Pemeriksaan hanya untuk dosen.');
+   const roster=await scopedRoster(profile,period,p.rosterId);if(roster.length!==1)throw new HttpError(404,'Peserta tidak tersedia.');
+   const submission=await must<any>(db.from('gerontik_weekly_submissions').select('*').eq('id',p.submissionId).eq('owner_id',roster[0].auth_user_id).eq('period',period).maybeSingle());
+   if(!submission)throw new HttpError(404,'Kiriman tidak tersedia.');
+   const reviews=await must<any[]>(db.from('gerontik_weekly_reviews').select('id,decision,comment,created_at').eq('submission_id',submission.id).order('created_at',{ascending:false}));
+   return reply({status:'success',student:roster[0].name,submission,reviews});
+  }
+  if(['monitoring','weeklyStatus','submitWeek','reviewWeek','sendReminder','readReminder'].includes(action)){
+   const lecturer=isLecturer(profile);
+   if(['monitoring','reviewWeek','sendReminder'].includes(action)&&!lecturer)throw new HttpError(403,'Menu ini hanya untuk dosen.');
+   if(['submitWeek','readReminder'].includes(action)&&(lecturer||!profile.roles.includes('student')))throw new HttpError(403,'Menu ini hanya untuk mahasiswa.');
+   if(p.rosterId&&!uuid(p.rosterId))throw new HttpError(400,'ID peserta tidak valid.');
+   const roster=await scopedRoster(profile,period,p.rosterId),owners=roster.map(r=>r.auth_user_id).filter(Boolean);
+   if(action==='monitoring'){
+    const students=[];
+    // Bounded state batches; raw clinical values never leave this summary endpoint.
+    for(let i=0;i<roster.length;i+=5){const batch=roster.slice(i,i+5),ids=batch.map(r=>r.auth_user_id).filter(Boolean);
+     const docs=ids.length?await must<any[]>(db.from('gerontik_learning_documents').select('owner_id,state,revision,status,updated_at').eq('period',period).in('owner_id',ids)):[];
+     const submissions=ids.length?await must<any[]>(db.from('gerontik_weekly_submissions').select('id,owner_id,week,status,attempt,review_revision,created_at,document_revision').eq('period',period).in('owner_id',ids).order('attempt',{ascending:false})):[];
+     for(const r of batch){const d=docs.find(x=>x.owner_id===r.auth_user_id);students.push({id:r.id,name:r.name,nim:r.nim,group:r.group_name,linked:!!r.auth_user_id,updatedAt:d?.updated_at||null,revision:d?.revision||0,documentStatus:d?.status||'EMPTY',weeks:[1,2].map(week=>{const progress=weekProgress(d?.state||{},week);return {...progress,missing:progress.missing.map(x=>({label:x.label,page:x.page,week:x.week,module:x.module,field:x.field})),submission:submissions.find(s=>s.owner_id===r.auth_user_id&&s.week===week)||null};})});}
+    }
+    return reply({status:'success',students});
+   }
+   if(action==='weeklyStatus'){
+    if(roster.length!==1)throw new HttpError(400,'Pilih satu peserta.');
+    const submissions=owners.length?await must<any[]>(db.from('gerontik_weekly_submissions').select('id,week,attempt,document_revision,status,review_revision,created_at,updated_at,progress').eq('period',period).in('owner_id',owners).order('attempt',{ascending:false})):[];
+    const reviews=submissions.length?await must<any[]>(db.from('gerontik_weekly_reviews').select('id,submission_id,decision,comment,created_at').in('submission_id',submissions.map(s=>s.id)).order('created_at',{ascending:false})):[];
+    const reminders=await must<any[]>(db.from('gerontik_weekly_reminders').select('id,week,message,read_at,created_at').eq('roster_id',roster[0].id).order('created_at',{ascending:false}).limit(50));
+    return reply({status:'success',submissions,reviews,reminders});
+   }
+   if(action==='readReminder'){
+    if(!uuid(p.reminderId)||roster.length!==1)throw new HttpError(400,'Pengingat tidak valid.');
+    await must(db.from('gerontik_weekly_reminders').update({read_at:new Date().toISOString()}).eq('id',p.reminderId).eq('roster_id',roster[0].id));return reply({status:'success'});
+   }
+   if(!uuid(p.operationId))throw new HttpError(400,'ID operasi tidak valid.');
+   if(action==='sendReminder'){
+    if(roster.length!==1||![1,2].includes(p.week)||!text(p.message,1000))throw new HttpError(400,'Pilih peserta, minggu dan pesan.');
+    const payload={roster_id:roster[0].id,actor_id:profile.userId,operation_id:p.operationId,week:p.week,message:text(p.message,1000)};
+    const prior=await must<any>(db.from('gerontik_weekly_reminders').select('*').eq('actor_id',profile.userId).eq('operation_id',p.operationId).maybeSingle());
+    if(prior){if(prior.roster_id!==payload.roster_id||prior.week!==payload.week||prior.message!==payload.message)throw new HttpError(409,'ID operasi sudah dipakai.');return reply({status:'success'});}
+    await must(db.from('gerontik_weekly_reminders').upsert(payload,{onConflict:'actor_id,operation_id',ignoreDuplicates:true}));
+    const saved=await must<any>(db.from('gerontik_weekly_reminders').select('roster_id,week,message').eq('actor_id',profile.userId).eq('operation_id',p.operationId).single());
+    if(saved.roster_id!==payload.roster_id||saved.week!==payload.week||saved.message!==payload.message)throw new HttpError(409,'ID operasi sudah dipakai.');return reply({status:'success'});
+   }
+   if(action==='submitWeek'){
+    if(roster.length!==1||![1,2].includes(p.week)||!Number.isInteger(p.expectedRevision))throw new HttpError(400,'Minggu atau revisi tidak valid.');
+    // A lost acknowledgment can be replayed even if later work advanced the draft.
+    const prior=await must<any>(db.from('gerontik_weekly_submissions').select('id,period,week,document_revision').eq('owner_id',profile.userId).eq('operation_id',p.operationId).maybeSingle());
+    if(prior){if(prior.period!==period||prior.week!==p.week||prior.document_revision!==p.expectedRevision)throw new HttpError(409,'ID operasi sudah dipakai.');return reply({status:'success',submissionId:prior.id});}
+    const doc=await fetchDocument(roster[0]);if(!doc||doc.revision!==p.expectedRevision)throw new HttpError(409,'Simpan dan gunakan revisi terbaru.');
+    const progress=weekProgress(doc.state,p.week);if(!progress.complete)return reply({status:'incomplete',message:'Isian minggu ini belum lengkap.',missing:progress.missing},400);
+    return rpcReply(await must(db.rpc('gerontik_submit_week',{p_owner:profile.userId,p_period:period,p_week:p.week,p_expected:p.expectedRevision,p_operation:p.operationId,p_progress:progress})));
+   }
+   if(!uuid(p.submissionId)||!Number.isInteger(p.expectedRevision)||!['revision_requested','approved'].includes(p.decision)||!text(p.comment,3000))throw new HttpError(400,'Review memerlukan status dan komentar.');
+   const submission=await must<any>(db.from('gerontik_weekly_submissions').select('id,owner_id').eq('id',p.submissionId).eq('period',period).maybeSingle());
+   if(!submission||!owners.includes(submission.owner_id))throw new HttpError(404,'Kiriman tidak tersedia untuk akun ini.');
+   return rpcReply(await must(db.rpc('gerontik_review_week',{p_actor:profile.userId,p_submission:p.submissionId,p_expected:p.expectedRevision,p_operation:p.operationId,p_decision:p.decision,p_comment:text(p.comment,3000)})));
+  }
+
   if(action==='load'){
    if(p.rosterId&&!uuid(p.rosterId))throw new HttpError(400,'ID peserta tidak valid.');
    const roster=await scopedRoster(profile,period,p.rosterId);
