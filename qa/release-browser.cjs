@@ -19,7 +19,7 @@ async function fixtures(context,role){
   else if(action==='loadSubmission')Object.assign(result,{submission:submissions.find(s=>s.id===p.submissionId),student:rows[0]});
   else if(action==='listPdf')result.reports=[];
   else if(action==='reminderChannels')Object.assign(result,{enabled:false,emailConfigured:false,whatsappConfigured:false});
-  else if(action==='exportAnalysis')result.records=[1,2].map(week=>({state,week,rosterId:rows[0].id,studentName:rows[0].name,nim:rows[0].nim,period:'SIMULASI',group:'A',source:'saved_latest',revision,status:'DRAFT'}));
+  else if(action==='exportAnalysis')result.records=(p.rosterIds.includes(rows[0].id)?[1,2]:[]).map(week=>({state,week,rosterId:rows[0].id,studentName:rows[0].name,nim:rows[0].nim,period:'SIMULASI',group:'A',source:'saved_latest',revision,status:'DRAFT'}));
   else Object.assign(result,{notifications:[],events:[],accounts:[],deliveries:[],contacts:[],reviews:[],reports:[],unread:0});
   await r.fulfill({contentType:'application/json',body:JSON.stringify(result)});
  });
@@ -44,8 +44,10 @@ async function fixtures(context,role){
     const csv=await p.evaluate(s=>{const r=GerontikAnalysisExport.row({state:s,week:1,rosterId:'SIM',period:'SIMULASI',revision:7});return {text:GerontikAnalysisExport.csv([r]),zero:r.barthel_b1_score,columns:GerontikAnalysisExport.columns().length};},state);assert.equal(csv.zero,0);assert.equal(csv.columns,868);fs.writeFileSync(path.join(out,'synthetic-analysis.csv'),csv.text);
     await p.addScriptTag({url:'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js'});await p.addScriptTag({url:base+'/learning-v6-fonts.js'});const pdf=await p.evaluate(async s=>{const def=GerontikSubmissionPdf.definition(s,INSTRUMEN);return await new Promise(resolve=>pdfMake.createPdf(def).getBase64(resolve));},submissions[0]);const bytes=Buffer.from(pdf,'base64');assert(bytes.subarray(0,5).toString()==='%PDF-');assert(bytes.length>20000);fs.writeFileSync(path.join(out,'synthetic-week1.pdf'),bytes);
    }
+   if(role==='teacher'){await p.locator('#nav [data-page=export-analysis]').click();const pending=p.waitForEvent('download');await p.locator('[data-work=export-data]').click();const download=await pending;await download.saveAs(path.join(out,'lecturer-download.csv'));const csv=fs.readFileSync(path.join(out,'lecturer-download.csv'),'utf8');assert(csv.includes('SIM1'));assert(!csv.includes('Narasi simulasi'));assert(csv.includes('barthel_b1_score'));}
    assert.deepEqual(errors,[],role+' JS errors');checks.push(role+' all '+menus.length+' menus, desktop/mobile');await c.close();
   }
+  const contact=await browser.newPage({viewport:{width:1000,height:1560}});await contact.setContent('<canvas width=1000 height=1560></canvas>');const shots=['landing-1440.png','landing-390.png','student-desktop.png','student-mobile.png','teacher-desktop.png','teacher-mobile.png'].map(n=>({name:n,data:fs.readFileSync(path.join(out,n)).toString('base64')}));await contact.evaluate(async shots=>{const c=document.querySelector('canvas'),x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,1000,1560);for(let i=0;i<shots.length;i++){const im=new Image();im.src='data:image/png;base64,'+shots[i].data;await im.decode();const row=Math.floor(i/2),mobile=i%2;x.drawImage(im,0,0,im.width,Math.min(im.height,mobile?844:1000),mobile?730:0,row*520,mobile?250:720,500);}},shots);const jpg=await contact.locator('canvas').screenshot({type:'jpeg',quality:65});fs.writeFileSync(path.join(out,'contact.jpg'),jpg);console.log('QA_CONTACT_BASE64='+jpg.toString('base64'));await contact.close();
   fs.writeFileSync(path.join(out,'result.json'),JSON.stringify({passed:true,checks,realGoogleLoginTested:false,realMessagesSent:0},null,2));console.log(JSON.stringify({passed:true,checks}));
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close();});
