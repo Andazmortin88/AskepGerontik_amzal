@@ -18,6 +18,7 @@ jobs:
       - run: node --test tests/*.test.cjs
       - run: npm install --prefix qa --ignore-scripts --no-audit --no-fund
       - run: qa/node_modules/.bin/playwright install --with-deps chromium
+      - run: sudo apt-get install -y poppler-utils
       - run: node qa/release-browser.cjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
