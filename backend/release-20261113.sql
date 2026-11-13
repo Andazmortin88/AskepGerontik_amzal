@@ -1,3 +1,5 @@
+-- Applied as learning_weekly_deadlines_pdf_and_reminder_foundation, 2026-11-13.
+-- The REVIEW ONLY comments below are preserved source history.
 begin;
 -- weekly-migration.sql
 -- REVIEW ONLY. Not applied to production. Install before the draft API.

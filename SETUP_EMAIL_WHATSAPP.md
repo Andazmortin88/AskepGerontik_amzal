@@ -1,3 +1,5 @@
+> Catatan historis tahap review. Status pengujian dan rilis terbaru: [RELEASE_VERIFICATION_20261113.md](RELEASE_VERIFICATION_20261113.md) dan [CURRENT_STATUS.md](CURRENT_STATUS.md). Pernyataan belum deploy/belum diuji di bawah ini mencatat keadaan saat dokumen awal ditulis.
+
 # Pengingat dosen melalui email dan WhatsApp
 
 Status: **draf, belum diaktifkan dan belum mengirim pesan nyata**. Menu aplikasi yang telah disetujui dipertahankan. Narasi evaluasi SATRIA dihapus; header dashboard dan pita preview memakai biru langit `#87ceeb` dengan teks gelap `#132c54`.
@@ -6,7 +8,7 @@ Status: **draf, belum diaktifkan dan belum mengirim pesan nyata**. Menu aplikasi
 
 Dosen menulis satu pesan, memilih minggu dan kanal email/WhatsApp, lalu menyimpan pengingat. Pengingat dalam aplikasi serta antrean per kanal dibuat dalam satu transaksi. Pengiriman server berjalan terpisah sehingga mahasiswa tidak perlu sedang membuka aplikasi. Tujuan pesan berasal dari roster/kontak mahasiswa; dosen tidak dapat menyisipkan alamat lain melalui payload API.
 
-Mahasiswa dapat mengatur email dan nomor WhatsApp melalui Komentar & pengingat → Atur email & WhatsApp. Nomor Indonesia berawalan 08 dinormalisasi menjadi +62. WhatsApp memerlukan persetujuan mahasiswa; pencabutan izin atau perubahan nomor diperiksa ulang sebelum pengiriman. Pengingat tanpa kontak/izin memiliki status terblokir dan harus diperiksa dosen.
+Mahasiswa dapat mengatur email dan nomor WhatsApp melalui Komentar & pengingat  Atur email & WhatsApp. Nomor Indonesia berawalan 08 dinormalisasi menjadi +62. WhatsApp memerlukan persetujuan mahasiswa; pencabutan izin atau perubahan nomor diperiksa ulang sebelum pengiriman. Pengingat tanpa kontak/izin memiliki status terblokir dan harus diperiksa dosen.
 
 Status yang ditampilkan: antrean, sedang diproses, menunggu percobaan ulang, diterima layanan, belum dapat dikirim, gagal, dan perlu diperiksa. **Diterima layanan bukan bukti sudah sampai/dibaca.** Webhook provider untuk konfirmasi delivered/read belum diimplementasikan; jangan menampilkan tanda sudah dibaca berdasarkan respons API pengiriman.
 

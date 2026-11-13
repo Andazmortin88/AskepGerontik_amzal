@@ -1,3 +1,5 @@
+> Catatan historis tahap review. Status pengujian dan rilis terbaru: [RELEASE_VERIFICATION_20261113.md](RELEASE_VERIFICATION_20261113.md) dan [CURRENT_STATUS.md](CURRENT_STATUS.md). Pernyataan belum deploy/belum diuji di bawah ini mencatat keadaan saat dokumen awal ditulis.
+
 # Ekspor data analisis dan revisi landing page
 
 Status: **draf review, belum di-deploy**. Tidak ada data pasien nyata yang diekspor selama pekerjaan ini.
@@ -14,7 +16,7 @@ Pilihan ekspor:
 - Semua baris terisi, atau hanya baris dengan 17 instrumen lengkap dan tanpa pertentangan opsi/skor.
 - CSV titik koma/desimal koma untuk Excel Indonesia, atau CSV koma/desimal titik untuk perangkat analisis.
 
-Satu baris berarti **satu mahasiswa × satu minggu**, bukan otomatis satu pasien yang berbeda. Kode/inisial lansia dipertahankan sesuai isian. Pasien yang sama mungkin dicatat lebih dari satu mahasiswa atau minggu; aplikasi tidak menggabungkan atau menganggapnya independen secara otomatis.
+Satu baris berarti **satu mahasiswa x satu minggu**, bukan otomatis satu pasien yang berbeda. Kode/inisial lansia dipertahankan sesuai isian. Pasien yang sama mungkin dicatat lebih dari satu mahasiswa atau minggu; aplikasi tidak menggabungkan atau menganggapnya independen secara otomatis.
 
 ## Isi CSV
 
@@ -35,7 +37,7 @@ Kamus variabel CSV memuat label setiap kolom, pertanyaan asli, tipe data, piliha
 - Opsi asli yang bertentangan dengan skor tetap dipertahankan dan diberi penanda, tanpa koreksi diam-diam.
 - CSV menggunakan UTF-8 BOM, CRLF dan pengutipan sel, sehingga koma/titik koma, kutip, karakter Indonesia, serta baris baru tidak menggeser kolom.
 - Teks yang dapat dianggap rumus spreadsheet dinetralkan dengan awalan apostrof. Tidak ada formula Excel yang dibuat dari isian mahasiswa.
-- Saat mengimpor ke Excel, gunakan **Data → Dari Teks/CSV**, pilih pemisah yang sesuai, dan tetapkan kolom NIM/kode sebagai teks agar angka nol di depan tetap dipertahankan. CSV tidak dapat memaksa tipe kolom Excel seperti berkas XLSX.
+- Saat mengimpor ke Excel, gunakan **Data  Dari Teks/CSV**, pilih pemisah yang sesuai, dan tetapkan kolom NIM/kode sebagai teks agar angka nol di depan tetap dipertahankan. CSV tidak dapat memaksa tipe kolom Excel seperti berkas XLSX.
 - Hanya demografi dan instrumen yang masuk respons ekspor; askep, head-to-toe, absensi, token, dan komentar dosen tidak dimasukkan.
 
 Pengambilan dibatasi lima peserta per permintaan. Daftar peserta ekspor ditetapkan saat proses dimulai; kewenangan diperiksa kembali pada setiap batch. Perubahan akun atau kegagalan batch menghentikan ekspor sebelum file parsial diunduh. Data tidak disimpan ke localStorage atau dipublikasikan pada URL; unduhan dibuat di browser pengguna yang berwenang.
@@ -44,17 +46,17 @@ Revisi/waktu sumber dicatat per baris. Ekspor beberapa batch bukan snapshot tran
 
 ## Landing page PC dan HP
 
-Latar kini didominasi gradasi biru–putih dengan bidang konten terang, bukan putih penuh. Layout hero memakai dua kolom di PC dan satu kolom pada tablet/HP. Grid fitur, sumber belajar, pendampingan dan footer menyesuaikan layar. Navigasi HP menggunakan menu native yang bisa dioperasikan keyboard dan ditutup dengan Escape.
+Latar kini didominasi gradasi biru-putih dengan bidang konten terang, bukan putih penuh. Layout hero memakai dua kolom di PC dan satu kolom pada tablet/HP. Grid fitur, sumber belajar, pendampingan dan footer menyesuaikan layar. Navigasi HP menggunakan menu native yang bisa dioperasikan keyboard dan ditutup dengan Escape.
 
-Ukuran dasar teks PC 20 px, deskripsi hero 22 px, judul hero 44–76 px. Pada HP ukuran dasar 20 px, deskripsi 21 px dan judul 44–56 px. Jarak tombol, padding kartu dan ritme antarseksi dirapikan. Zoom tidak dikunci; ukuran minimum tombol dipertahankan.
+Ukuran dasar teks PC 20 px, deskripsi hero 22 px, judul hero 44-76 px. Pada HP ukuran dasar 20 px, deskripsi 21 px dan judul 44-56 px. Jarak tombol, padding kartu dan ritme antarseksi dirapikan. Zoom tidak dikunci; ukuran minimum tombol dipertahankan.
 
-Ilustrasi lansia menggunakan aset asli **1536 × 1024**. Efek scale yang memperbesar raster dihilangkan; gambar tidak dibuat seolah mempunyai detail tambahan lewat pembesaran buatan. Preview memakai gambar tertanam sehingga tidak bergantung pada path aset lokal. Preferensi reduced motion tetap dihormati.
+Ilustrasi lansia menggunakan aset asli **1536 x 1024**. Efek scale yang memperbesar raster dihilangkan; gambar tidak dibuat seolah mempunyai detail tambahan lewat pembesaran buatan. Preview memakai gambar tertanam sehingga tidak bergantung pada path aset lokal. Preferensi reduced motion tetap dihormati.
 
 Pemeriksaan otomatis mencakup struktur responsif, kontras warna utama, navigasi, ukuran sumber gambar dan tautan. Ini belum menggantikan pemeriksaan visual browser nyata pada PC/HP.
 
 ## Preview dan build
 
-Paket preview berisi `landing-review-preview.html` dan `review-preview.html`. Buka landing untuk meninjau tampilan, lalu masuk ke dashboard simulasi; pilih **Dosen → Ekspor data analisis**. Data ekspor preview memakai identitas SIMULASI.
+Paket preview berisi `landing-review-preview.html` dan `review-preview.html`. Buka landing untuk meninjau tampilan, lalu masuk ke dashboard simulasi; pilih **Dosen  Ekspor data analisis**. Data ekspor preview memakai identitas SIMULASI.
 
 Build berurutan: V6, completion, progress, practice-schedule, reminder-delivery, **analysis-export**, review-preview, lalu landing-review. Jalankan `node --test tests/*.test.cjs` setelahnya. File `analysis-schema.js` dan `backend/analysis-schema.ts` dihasilkan dari 17 instrumen dan 10 kolom demografi sumber V6, bukan ditulis ulang secara terpisah.
 

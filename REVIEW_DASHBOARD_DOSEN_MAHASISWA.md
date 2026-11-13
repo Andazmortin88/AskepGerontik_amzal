@@ -1,3 +1,5 @@
+> Catatan historis tahap review. Status pengujian dan rilis terbaru: [RELEASE_VERIFICATION_20261113.md](RELEASE_VERIFICATION_20261113.md) dan [CURRENT_STATUS.md](CURRENT_STATUS.md). Pernyataan belum deploy/belum diuji di bawah ini mencatat keadaan saat dokumen awal ditulis.
+
 # Review revisi dashboard Askep Gerontik
 
 Status: **draf untuk ditinjau, belum dirilis**. Basis produksi: `692cba551a46f6df6688b2fc9f44a7f42b114f43`. Tidak ada migrasi database, deploy Edge Function, merge, ataupun perubahan data mahasiswa pada pekerjaan ini.
@@ -21,7 +23,7 @@ Warna court blue, putih, dan bright yellow dipertahankan sebagai identitas; bagi
 2. Pemilih peserta lama hanya menampilkan akun yang sudah tertaut Google. Draf menampilkan seluruh roster bimbingan dan tetap dapat memuat portfolio kosong untuk peserta yang belum login.
 3. Validasi final lama menerima seluruh instrumen dan narasi minimal meskipun head-to-toe terstruktur serta evaluasi kosong. Aturan bersama browser/server sekarang memeriksa 131 jawaban instrumen, 72 isian head-to-toe, data dasar, setiap baris analisis/rencana, implementasi, dan evaluasi pada setiap minggu.
 4. Persentase diturunkan dari isian wajib, bukan jumlah klik, login, atau hitungan kompetensi terverifikasi. Nilai nol instrumen tetap sah. Persentase dibulatkan ke bawah agar isian yang belum lengkap tidak tampil 100%.
-5. Status “Belum dikaji” belum memenuhi kelengkapan. “Tidak dapat dinilai/Tidak relevan” dengan alasan dihitung terdokumentasi, tetapi diberi penanda untuk telaah dosen. Kelengkapan administratif tidak membuktikan ketepatan klinis ataupun kompetensi.
+5. Status "Belum dikaji" belum memenuhi kelengkapan. "Tidak dapat dinilai/Tidak relevan" dengan alasan dihitung terdokumentasi, tetapi diberi penanda untuk telaah dosen. Kelengkapan administratif tidak membuktikan ketepatan klinis ataupun kompetensi.
 6. Kiriman mingguan menyimpan snapshot tetap dan nomor revisi. Guard SQL menggunakan kunci transaksi pemilik yang sama dengan penyimpanan sebelumnya untuk mencegah perubahan minggu yang sedang diperiksa atau sudah disetujui. Minggu lain tetap dapat dikerjakan. Permintaan berulang menggunakan ID operasi dan pemeriksaan revisi.
 7. Akses monitoring, kiriman, komentar, dan pengingat dibatasi di API berdasarkan penugasan dosen; identitas mahasiswa berasal dari autentikasi. Persentase dari klien diabaikan. Tabel baru memakai RLS dan tidak diberikan akses langsung kepada anon/authenticated.
 8. Salinan kiriman ditampilkan dengan escaping teks. Input berbentuk baris kosong/null tidak boleh melumpuhkan perhitungan monitoring. Pembacaan state untuk monitoring dibatasi lima dokumen per batch dan tidak mengirim isi klinis mentah ke tabel kelas.

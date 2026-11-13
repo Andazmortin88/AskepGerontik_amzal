@@ -1,10 +1,12 @@
+> Catatan historis tahap review. Status pengujian dan rilis terbaru: [RELEASE_VERIFICATION_20261113.md](RELEASE_VERIFICATION_20261113.md) dan [CURRENT_STATUS.md](CURRENT_STATUS.md). Pernyataan belum deploy/belum diuji di bawah ini mencatat keadaan saat dokumen awal ditulis.
+
 # Jadwal praktik, kiriman terlambat, dan PDF
 
 Status: **draf review; belum diterapkan ke aplikasi/database produksi**.
 
 ## Keputusan pengguna
 
-- Praktik dua minggu; setiap minggu lima hari Senin–Jumat.
+- Praktik dua minggu; setiap minggu lima hari Senin-Jumat.
 - Batas pengiriman setiap Jumat. Implementasi memakai pukul 23.59 WIB (akhir Jumat).
 - Setelah tenggat, mahasiswa tetap dapat mengirim tugas yang lengkap. Kiriman diberi label **Terlambat mengirimkan**, terpisah dari keputusan review dosen.
 - Tanggal praktik diatur kemudian melalui akun dosen/superadmin. **Tidak ada tanggal aktif yang dibuat sekarang**, karena belum ada praktik baru yang dijadwalkan.
@@ -24,7 +26,7 @@ Pengiriman ulang setelah revisi menghasilkan percobaan baru dengan waktu/tenggat
 
 Filter tersedia untuk semua peserta, belum mulai, tidak aktif sesuai jadwal, lewat tenggat tetapi belum mengirim, dan terlambat mengirimkan; pencarian nama/NIM tetap tersedia.
 
-Penanda tidak aktif memakai hari kerja lengkap tanpa penyimpanan, melewati Sabtu/Minggu, dan tidak aktif sebelum jadwal dimulai atau ketika jadwal belum ditetapkan. Nilai awal tiga hari kerja dapat diatur dosen (1–10). Aktivitas yang diukur adalah perubahan tersimpan, bukan sekadar login. Ini indikator tindak lanjut, bukan penetapan nilai atau ketidakhadiran.
+Penanda tidak aktif memakai hari kerja lengkap tanpa penyimpanan, melewati Sabtu/Minggu, dan tidak aktif sebelum jadwal dimulai atau ketika jadwal belum ditetapkan. Nilai awal tiga hari kerja dapat diatur dosen (1-10). Aktivitas yang diukur adalah perubahan tersimpan, bukan sekadar login. Ini indikator tindak lanjut, bukan penetapan nilai atau ketidakhadiran.
 
 ## PDF dari versi kiriman
 
@@ -42,8 +44,8 @@ Hasil tes Node/VM/API mock ada di `TEST_RESULTS_ROLE_REVIEW.txt`. Pemeriksaan SQ
 
 SQL baru belum dieksekusi. Urutan kandidat staging setelah SQL mingguan/pengingat sebelumnya:
 
-1. `backend/friday-deadlines.sql` — jadwal peserta, tenggat, dan pencatatan waktu kiriman.
-2. `backend/pdf-submission-binding.sql` — pengaitan PDF dan guard sumber.
+1. `backend/friday-deadlines.sql` - jadwal peserta, tenggat, dan pencatatan waktu kiriman.
+2. `backend/pdf-submission-binding.sql` - pengaitan PDF dan guard sumber.
 3. API draf beserta `backend/progress.ts` dan `backend/practice-schedule.js`, lalu frontend versi yang sesuai.
 
 Build: `node build-practice-schedule.cjs`, `node build-learning-v6.cjs`, `node build-completion.cjs`, `node build-progress.cjs`, `node build-reminder-delivery.cjs`, `node build-review-preview.cjs`, lalu `node --test tests/*.test.cjs`.
