@@ -10,7 +10,7 @@ function finalMissing(state){
   }
   for(const [key,label]of [['fisik','pemeriksaan fisik'],['diagnosis','diagnosis keperawatan'],['implementasi','implementasi']])if(!text(a[key]))missing.push('Minggu '+week+': '+label);
   if(!Array.isArray(a.analisa)||!a.analisa.some(r=>text(r.data)&&text(r.masalah)))missing.push('Minggu '+week+': analisis data');
-  if(!Array.isArray(a.rencana)||!a.rencana.some(r=>text(r.diagnosis)&&(text(r.tujuan)||Array.isArray(r.slki)&&r.slki.length)&&Array.isArray(r.intervensi)&&r.intervensi.length))missing.push('Minggu '+week+': rencana asuhan');
+  if(!Array.isArray(a.rencana)||!a.rencana.some(r=>text(r.diagnosis)&&(text(r.tujuan)||text(r.slkiManual)||Array.isArray(r.slki)&&r.slki.length)&&(text(r.sikiManual)||Array.isArray(r.intervensi)&&r.intervensi.length)))missing.push('Minggu '+week+': rencana asuhan');
  }
  if(!Array.isArray(state?.logs)||state.logs.filter(r=>text(r.summary)&&text(r.reflection)).length<10)missing.push('Sepuluh catatan logbook lengkap');
  for(const week of [1,2])if(!Array.isArray(state?.reflections)||!state.reflections.some(r=>String(r.week)===String(week)&&text(r.text)&&text(r.plan)))missing.push('Refleksi minggu '+week);

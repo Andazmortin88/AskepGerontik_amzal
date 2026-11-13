@@ -1,0 +1,29 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const root=__dirname,sourcePath=process.argv[2]||path.join(root,'../v6/preview-v6.html');
+const html=fs.readFileSync(sourcePath,'utf8'),blocks=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
+if(blocks.length!==3)throw Error('Inspect changed V6 source: expected app, PDF library and fonts.');
+let app=blocks[0][2];
+function replace(old,next){if(!app.includes(old))throw Error('V6 integration marker changed: '+old.slice(0,80));app=app.replace(old,next);}
+replace("const KEY='gerontik_learning_preview_v3_20261112';", "const KEY='gerontik-v6-disabled-demo-cache';");
+replace("let db;try{db=JSON.parse(localStorage.getItem(KEY))||empty()}catch{db=empty()}","let db=empty();");
+replace("$('#role').onchange=()=>render();render();", "/* Authentication must finish before rendering student information. */");
+app=app.replace(/^render\(\);\s*$/gm,'');
+app=app.replace(/(document\.title='[^']+';)render\(\);/g,'$1');
+replace("DATA.competencies.find(c=>c.id===x.skill)?.name:x.week?", "(DATA.competencies.find(c=>c.id===x.skill)?.name||x.skillName||x.skill):x.skillName?x.skillName:x.week?");
+replace("DATA.competencies.find(c=>c.id===x.skill)?.name||x.skill}","DATA.competencies.find(c=>c.id===x.skill)?.name||x.skillName||x.skill||'Bukti sebelumnya'}");
+replace("if(it.min!==undefined)v=Math.max(v,it.min);if(it.max!==undefined)v=Math.min(v,it.max);e.value=v;", "if(!Number.isFinite(v)||it.min!==undefined&&v<it.min||it.max!==undefined&&v>it.max){toast('Nilai di luar rentang instrumen; periksa pengukuran.');return;}e.value=v;");
+// Counts refer to the selected authenticated portfolio, never to a demo cohort.
+app=app.replace('Preview satu portofolio pada browser ini','Portofolio terpilih').replace('Data ditampilkan dari isian, belum tersinkron dengan akun mahasiswa sebenarnya.','Periksa status penyimpanan server sebelum berganti perangkat.');
+app=app.replaceAll('Review demo','Review pembimbing').replaceAll('Verifikasi demo','Verifikasi').replaceAll('Riwayat logbook demo','Riwayat logbook').replaceAll('Belum ada catatan demo.','Belum ada catatan.');
+app=app.replaceAll('Ini simulasi lokal; nama penilai bukan tanda tangan elektronik.','Hasil bersifat formatif; nama penilai bukan tanda tangan elektronik.');
+app=app.replaceAll('Penilaian dan umpan balik tersimpan pada preview.','Penilaian sedang dikirim ke server.');
+app=app.replaceAll('Form diajukan untuk penilaian dosen.','Pengajuan tersimpan di perangkat; tunggu konfirmasi server.').replaceAll('Draf kompetensi tersimpan.','Draf tersimpan di perangkat; tunggu konfirmasi server.');
+app=app.replaceAll('PREVIEW PENDIDIKAN / DATA SIMULASI. Tidak dikirim ke server dan bukan bukti praktik atau validasi pembimbing sebenarnya.','DOKUMEN PEMBELAJARAN. Periksa revisi server, status pengajuan dan validasi pembimbing.');
+new vm.Script(app);new vm.Script(blocks[2][2]);
+fs.writeFileSync(path.join(root,'learning-v6-core.js'),app);
+fs.writeFileSync(path.join(root,'learning-v6-fonts.js'),blocks[2][2]);
+const style=html.match(/<style>([\s\S]*?)<\/style>/)[1];
+fs.writeFileSync(path.join(root,'learning-v6.css'),style+'\n'+fs.readFileSync(path.join(root,'learning-v6-account.css'),'utf8'));
+const shell=`<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Askep Gerontik — Pembelajaran V6</title><link rel="stylesheet" href="learning-v6.css?v=1"></head><body><header><div class="brand">Askep Gerontik Digital<small>PENGKAJIAN & PEMBELAJARAN LANSIA · V6</small></div><div id="accountControls"><span id="accountName">Memeriksa akun…</span><button id="saveAccount" class="btn light" hidden>Simpan sekarang</button><button id="logoutAccount" class="btn light" hidden>Keluar</button></div><select id="role" hidden disabled aria-hidden="true"><option value="student">Mahasiswa</option><option value="teacher">Dosen</option></select></header><div class="notice" id="accountStatus" role="status">Memeriksa akun dan memuat portofolio dari server.</div><section id="accountGate" class="card"><h1>Menyiapkan ruang belajar.</h1><p>Portofolio akan terbuka setelah akun dan penugasan terverifikasi.</p><a href="portal.html?masuk=1">Kembali ke halaman akun</a></section><div id="portfolioSelector" hidden></div><div id="learningLayout" class="layout" hidden><aside><nav id="nav" aria-label="Menu pembelajaran V6"></nav><div class="aside-note section tiny">PROFESI NERS UBS<br>Gerontik · 2 minggu<br>Rubrik formatif mengikuti draf RPS yang perlu pengesahan akademik.<br><a href="portal.html?masuk=1&classic=1">Manajemen akun dan peserta</a></div></aside><main id="app"></main></div><div id="toast" role="status" aria-live="polite"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js" defer></script><script src="sync.js" defer></script><script src="completion.js" defer></script><script src="learning-v6-model.js?v=1" defer></script><script src="learning-v6-core.js?v=1" defer></script><script src="learning-v6-account.js?v=1" defer></script></body></html>`;
+fs.writeFileSync(path.join(root,'learning-v6.html'),shell);
+console.log('Built authenticated V6 shell, original 18-menu app, theme and font data.');
