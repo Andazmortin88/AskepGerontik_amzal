@@ -3,6 +3,8 @@
  function normalize(input={},roster={}){const state=copy(input);for(const key of ['logs','attendance','reflections','skin','competency'])if(!Array.isArray(state[key]))state[key]=[];
   const c=state.clinicalState||={};c.mahasiswa={...(c.mahasiswa||{}),nama:roster.name||c.mahasiswa?.nama||'',nim:roster.nim||c.mahasiswa?.nim||'',status:roster.program||c.mahasiswa?.status||'',kelas:roster.group_name||c.mahasiswa?.kelas||''};
   for(const key of ['demografi','instrumen','instrumenRaw','asuhan','h2t']){c[key]||={};for(const week of [1,2])c[key][week]||={};}
+  const describe=items=>(items||[]).map(item=>typeof item==='string'?item:[item.kode,item.nama,item.ekspektasi].filter(Boolean).join(' - ')).join('\n');
+  for(const week of [1,2])for(const plan of c.asuhan[week].rencana||[]){if(plan.slkiManual===undefined&&plan.slki?.length)plan.slkiManual=describe(plan.slki);if(plan.sikiManual===undefined&&plan.intervensi?.length)plan.sikiManual=describe(plan.intervensi);}
   state.learningVersion=6;state.v6Migration||={legacyPhysical:{}};state.v6Migration.legacyPhysical||={};
   for(const w of [1,2])if(!Object.keys(c.h2t[w]).length&&c.asuhan[w].fisik&&!state.v6Migration.legacyPhysical[w])state.v6Migration.legacyPhysical[w]=c.asuhan[w].fisik;
   return state;
