@@ -5,3 +5,5 @@
 .site-header nav a.button{display:inline-flex!important}.site-header nav{margin:0}
 
 .hero .actions .button:first-child,.closing .button{background:#ffe600;border-color:#cdb900;color:#17315b}.image-features span{background:#fff;border-color:#9fb4d6}.image-features span:first-child{background:#ffe600;border-color:#cdb900}.site-header{border-bottom:3px solid #1d3f8b}.identity-mark{background:#1d3f8b;color:white}.site-header nav a{font-size:17px}.site-header .profile{color:#17315b}
+
+:root{--green:#1d3f8b;--navy:#17315b;--mint:#eaf0fb}.btn{background:#1d3f8b;border-color:#1d3f8b;color:white}.btn.light{background:white;color:#1d3f8b;border-color:#9fb4d6}
