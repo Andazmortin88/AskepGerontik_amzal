@@ -98,7 +98,27 @@ Deno.serve(async(req)=>{
   const {data:auth,error:authError}=await db.auth.getUser(token);if(authError||!auth?.user)throw new HttpError(401,'Sesi berakhir. Masuk kembali; data tersimpan tidak dihapus.');
   const profile=await profileFor(auth.user),p=isObject(body.payload)?body.payload:{},action=text(body.action,40),period=text(p.period,100)||PERIOD;
   if(!/^[a-zA-Z0-9_-]{1,100}$/.test(period))throw new HttpError(400,'Kode periode tidak valid.');
-  if(action==='bootstrap')return reply({status:'success',profile,roster:await scopedRoster(profile,period),period});
+  if(action==='bootstrap'){
+   const signedIn=auth.user.last_sign_in_at;
+   if(!isLecturer(profile)&&typeof signedIn==='string'&&Number.isFinite(Date.parse(signedIn)))await must(db.from('gerontik_learning_login_events').upsert({auth_user_id:profile.userId,login_at:signedIn,email:profile.email,name:profile.name,account_status:profile.roles.includes('student')?'student':'pending'},{onConflict:'auth_user_id,login_at',ignoreDuplicates:true}));
+   return reply({status:'success',profile,roster:await scopedRoster(profile,period),period});
+  }
+  if(action==='loginNotifications'||action==='readLoginNotification'){
+   if(!isLecturer(profile))throw new HttpError(403,'Notifikasi hanya untuk dosen atau super admin.');
+   const roster=await scopedRoster(profile,period),owners=roster.map(r=>r.auth_user_id).filter(Boolean);
+   if(action==='readLoginNotification'){
+    if(!uuid(p.eventId))throw new HttpError(400,'ID notifikasi tidak valid.');
+    const event=await must<any>(db.from('gerontik_learning_login_events').select('id,auth_user_id').eq('id',p.eventId).maybeSingle());
+    if(!event||!isAdmin(profile)&&!owners.includes(event.auth_user_id))throw new HttpError(404,'Notifikasi tidak tersedia untuk akun ini.');
+    await must(db.from('gerontik_learning_login_receipts').upsert({event_id:event.id,reader_id:profile.userId},{onConflict:'event_id,reader_id',ignoreDuplicates:true}));
+    return reply({status:'success'});
+   }
+   let q=db.from('gerontik_learning_login_events').select('id,auth_user_id,login_at,email,name,account_status');
+   if(!isAdmin(profile)){if(!owners.length)return reply({status:'success',events:[]});q=q.in('auth_user_id',owners);}
+   const events=await must<any[]>(q.order('login_at',{ascending:false}).order('id').limit(50));
+   const receipts=events.length?await must<any[]>(db.from('gerontik_learning_login_receipts').select('event_id').eq('reader_id',profile.userId).in('event_id',events.map(e=>e.id))):[];
+   return reply({status:'success',events:events.map(e=>({...e,name:roster.find(r=>r.auth_user_id===e.auth_user_id)?.name||e.name,read:receipts.some(r=>r.event_id===e.id)}))});
+  }
   if(action==='load'){
    if(p.rosterId&&!uuid(p.rosterId))throw new HttpError(400,'ID peserta tidak valid.');
    const roster=await scopedRoster(profile,period,p.rosterId);
