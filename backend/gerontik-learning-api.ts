@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.117.1';
 import { portfolioMissing as finalMissing, weekProgress } from './progress.ts';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
 import './practice-schedule.js';
+import {schema as analysisSchema} from './analysis-schema.ts';
 const practice=(globalThis as any).GerontikPractice;
 const PERIOD='uji-v7';
 const STAFF:Record<string,{name:string,roles:string[]}>= {
@@ -136,6 +137,26 @@ Deno.serve(async(req)=>{
    const reminders=await must<any[]>(db.from('gerontik_weekly_reminders').select('id,roster_id,week,created_at').in('roster_id',ids).order('created_at',{ascending:false}).limit(50));
    const jobs=reminders.length?await must<any[]>(db.from('gerontik_reminder_outbox').select('id,reminder_id,channel,status,attempts,error_code,created_at').in('reminder_id',reminders.map(r=>r.id)).order('created_at',{ascending:false})):[];
    return reply({status:'success',deliveries:jobs.map(j=>({...j,student:roster.find(r=>r.id===reminders.find(x=>x.id===j.reminder_id)?.roster_id)?.name||'Mahasiswa'}))});
+  }
+
+  if(action==='exportAnalysis'){
+   if(!isLecturer(profile))throw new HttpError(403,'Ekspor analisis hanya untuk dosen atau superadmin.');
+   const ids=p.rosterIds,weeks=p.weeks??[1,2],source=p.source??'current';
+   if(!Array.isArray(ids)||!ids.length||ids.length>5||ids.some((id:any)=>!uuid(id))||new Set(ids).size!==ids.length||!Array.isArray(weeks)||!weeks.length||weeks.length>2||weeks.some((w:any)=>![1,2].includes(w))||new Set(weeks).size!==weeks.length||!['current','submitted'].includes(source))throw new HttpError(400,'Pilih maksimal lima peserta per batch, minggu dan sumber data yang valid.');
+   const allowed=await scopedRoster(profile,period);if(ids.some((id:any)=>!allowed.some(r=>r.id===id)))throw new HttpError(403,'Ekspor hanya mencakup peserta bimbingan yang berwenang.');
+   const roster=ids.map((id:any)=>allowed.find(r=>r.id===id)),owners=roster.map(r=>r.auth_user_id).filter(Boolean),records=[];
+   const docs=source==='current'&&owners.length?await must<any[]>(db.from('gerontik_learning_documents').select('owner_id,state,revision,status,updated_at').eq('period',period).in('owner_id',owners)):[];
+   for(const r of roster)for(const week of weeks){
+    if(!r.auth_user_id)continue;
+    const submission=source==='submitted'?await must<any>(db.from('gerontik_weekly_submissions').select('id,week,snapshot,document_revision,attempt,status,is_late,created_at').eq('owner_id',r.auth_user_id).eq('period',period).eq('week',week).order('attempt',{ascending:false}).limit(1).maybeSingle()):null;
+    const doc=docs.find(d=>d.owner_id===r.auth_user_id),original=source==='submitted'?submission?.snapshot:doc?.state;if(!original)continue;
+    const c=original.clinicalState||{},demografi:any={},instrumen:any={},instrumenRaw:any={};
+    for(const [key]of analysisSchema.demography)if(c.demografi?.[week]?.[key]!==undefined)demografi[key]=c.demografi[week][key];
+    for(const [id,d]of Object.entries(analysisSchema.instruments) as any){instrumen[id]={};instrumenRaw[id]={};for(const item of d.items){const score=c.instrumen?.[week]?.[id]?.[item.id],raw=c.instrumenRaw?.[week]?.[id]?.[item.id];if(score!==undefined)instrumen[id][item.id]=score;if(isObject(raw))instrumenRaw[id][item.id]=Object.fromEntries(['optionIndex','text','rawValue','value','scoreValue','inputType'].filter(k=>raw[k]!==undefined).map(k=>[k,raw[k]]));}}
+    const hasData=Object.values(demografi).some(v=>v!==null&&v!=='')||Object.values(instrumen).some((v:any)=>Object.values(v).some(x=>x!==null&&x!==''))||Object.values(instrumenRaw).some((v:any)=>Object.keys(v).length>0);if(!hasData)continue;
+    records.push({rosterId:r.id,studentName:r.name,nim:r.nim||'',group:r.group_name||'',period,week,source:source==='submitted'?'submission_latest':'saved_latest',revision:source==='submitted'?submission.document_revision:doc.revision,savedAt:source==='submitted'?submission.created_at:doc.updated_at,status:source==='submitted'?submission.status:doc.status,submission:submission?{id:submission.id,attempt:submission.attempt,status:submission.status,is_late:submission.is_late}:null,state:{clinicalState:{demografi:{[week]:demografi},instrumen:{[week]:instrumen},instrumenRaw:{[week]:instrumenRaw}}}});
+   }
+   return reply({status:'success',records,skipped:roster.length*weeks.length-records.length,generatedAt:new Date().toISOString(),schemaVersion:'v6-17-131'});
   }
 
   if(action==='setPracticeSchedule'){

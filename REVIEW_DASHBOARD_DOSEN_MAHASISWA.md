@@ -60,3 +60,7 @@ Jalankan `node build-learning-v6.cjs`, `node build-completion.cjs`, `node build-
 Untuk staging yang telah disiapkan, kandidat perubahan database berada dalam satu berkas `backend/weekly-migration.sql`. API memerlukan `backend/gerontik-learning-api.ts` dan `backend/progress.ts`. Jangan memasang frontend draf terhadap API produksi lama.
 
 Rujukan kontrol akses: https://supabase.com/docs/guides/database/postgres/row-level-security dan https://supabase.com/docs/guides/api/securing-your-api.
+
+## Revisi ekspor dan landing
+
+Menu Ekspor data analisis disiapkan khusus dosen/superadmin untuk demografi dan 17 instrumen. Cakupan mengikuti penugasan; sumber bisa isian terbaru atau kiriman tersimpan. Landing baru memakai gradasi biru-putih, font lebih besar, jarak responsif dan menu HP. Detail format, kualitas data, batas pengujian dan preview ada di EKSPOR_DATA_DAN_LANDING.md. Ekspor nyata dan browser visual masih perlu diuji di staging.

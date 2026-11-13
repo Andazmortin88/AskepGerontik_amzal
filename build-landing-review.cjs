@@ -1,0 +1,10 @@
+const fs=require('node:fs'),path=require('node:path'),root=__dirname,read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const source=read('portal.html');
+let body=source.slice(source.indexOf('<body'),source.indexOf('<main id="loginView"'));
+const css=['portal.css','landing-premium.css','landing-brand.css','landing-responsive-blue.css'].map(read).join('\n').replace(/@import[^;]+;/g,'');
+const data='data:image/webp;base64,'+fs.readFileSync(path.join(root,'assets/elderly-hero.webp')).toString('base64');
+body=body.replace(/<body[^>]*>/,'<body class="landing-blue"><div class="landing-preview-note">PREVIEW TAMPILAN · DATA SIMULASI · BELUM DEPLOY</div>').replace(/src="assets\/elderly-hero.webp"/g,'src="'+data+'"').replace(/srcset="[^"]*"/g,'').replace(/href="portal.html\?masuk=1"/g,'href="review-preview.html"').replace(/href="learning-v6.html([^\"]*)"/g,'href="review-preview.html$1"').replace(/href="portal.html"/g,'href="landing-review-preview.html"');
+const motion=read('landing-premium.js');
+const html='<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Review landing Askep Gerontik</title><style>'+css+'\n.landing-preview-note{background:#173e78;color:white;padding:12px 20px;text-align:center;font:600 15px system-ui;letter-spacing:.03em}.landing-blue .site-header{position:relative}</style></head>'+body+'<script>'+motion.replace(/<\/script/gi,'<\\/script')+'</script></body></html>';
+fs.writeFileSync(path.join(root,'landing-review-preview.html'),html);
+console.log('Standalone blue-white landing preview built with the original 1536×1024 WebP.');
