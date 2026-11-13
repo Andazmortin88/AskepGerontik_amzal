@@ -1,3 +1,5 @@
+> Pembaruan: hasil integrasi V6 dan pengujian Google nyata tersedia di [AUDIT_V6_20261113.md](AUDIT_V6_20261113.md). Dokumen di bawah adalah riwayat audit sebelum integrasi V6; pernyataan akun belum tertaut atau belum ada pengujian browser tidak lagi menggambarkan kondisi terbaru.
+
 # Audit fungsional portal Askep Gerontik
 
 13 November 2026 WIB. Melanjutkan implementasi yang ada pada main 47cbe672ae9af0addebfca11ee022a08eb676ba0. Ini audit parsial dengan bukti dan batas pengujian, bukan sertifikasi keamanan atau kelulusan peluncuran 100 mahasiswa.
